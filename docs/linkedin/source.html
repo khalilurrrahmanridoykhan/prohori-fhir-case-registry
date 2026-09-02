@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+<style>
+  :root {
+    --surface: #ffffff;
+    --chrome: #f0ece4;
+    --border: #ded7c8;
+    --rule: #e6e0d3;
+    --ink: #1d2427;
+    --ink-soft: #3c464a;
+    --muted: #717a7e;
+    --amber: #bd5c17;
+    --amber-ink: #a24f14;
+    --amber-wash: rgba(189, 92, 23, 0.10);
+    --dim: #98a0a4;
+    --pulse: #bd2f43;
+  }
+  :root[data-theme="dark"] {
+    --surface: #141d20;
+    --chrome: #182226;
+    --border: #26343a;
+    --rule: #202d32;
+    --ink: #e8eff1;
+    --ink-soft: #c2ced2;
+    --muted: #8a9aa1;
+    --amber: #f5883e;
+    --amber-ink: #f7a065;
+    --amber-wash: rgba(245, 136, 62, 0.13);
+    --dim: #6d7c83;
+    --pulse: #e4576a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 1080px; height: 1080px;
+    background: var(--surface); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .artboard {
+    width: 1080px; height: 1080px; container-type: size;
+    background: var(--surface); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .chrome {
+    height: 6.6cqmin; background: var(--chrome); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 2.2cqmin; padding: 0 3.4cqmin; flex-shrink: 0;
+  }
+  .dots { display: flex; gap: 1.3cqmin; }
+  .dots i { width: 1.4cqmin; height: 1.4cqmin; border-radius: 50%; background: var(--dim); opacity: 0.5; display: block; }
+  .tab {
+    font-family: "IBM Plex Mono", monospace; font-size: 2cqmin; color: var(--muted); letter-spacing: 0.02em;
+    padding: 0.7cqmin 2cqmin; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .tab b { color: var(--ink-soft); font-weight: 600; }
+  .body { flex: 1; padding: 4.4cqmin 5.6cqmin 4cqmin; display: flex; flex-direction: column; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 1.95cqmin; font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+  }
+  .eyebrow::after { content: ""; display: block; width: 6.4cqmin; height: 2px; background: var(--pulse); margin-top: 1.8cqmin; }
+  h1 {
+    font-size: 4.6cqmin; line-height: 1.08; font-weight: 600; letter-spacing: -0.018em;
+    margin: 2.4cqmin 0 0; text-wrap: balance; max-width: 22ch;
+  }
+  h1 .k { color: var(--amber); }
+  .dek {
+    font-family: "IBM Plex Mono", monospace; font-size: 2.1cqmin; line-height: 1.5;
+    color: var(--ink-soft); margin: 2cqmin 0 0; max-width: 56ch;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 3cqmin; }
+  th {
+    text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 1.85cqmin; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); padding: 0 0 2cqmin; vertical-align: bottom;
+  }
+  th.axis { width: 16%; }
+  th.bruno { width: 43%; color: var(--amber); padding-left: 1cqmin; }
+  th.postman { width: 41%; padding-left: 3cqmin; }
+  td { vertical-align: top; padding: 1.95cqmin 0; border-top: 1px solid var(--rule); font-size: 2.15cqmin; line-height: 1.38; }
+  td.axis {
+    font-family: "IBM Plex Mono", monospace; font-size: 1.65cqmin; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 2.5cqmin; padding-right: 1.4cqmin;
+  }
+  td.cell { padding-left: 1cqmin; }
+  td.cell .row { display: flex; gap: 1.6cqmin; }
+  td.cell .mark { flex-shrink: 0; font-weight: 700; font-size: 2.1cqmin; line-height: 1.5; }
+  td.bruno .mark { color: var(--amber); }
+  td.bruno .txt { color: var(--ink); }
+  td.postman { padding-left: 3cqmin; }
+  td.postman .mark { color: var(--dim); }
+  td.postman .txt { color: var(--muted); }
+  .mono {
+    font-family: "IBM Plex Mono", monospace; background: var(--amber-wash); color: var(--amber-ink);
+    padding: 0.12em 0.38em; border-radius: 3px; font-size: 0.85em;
+  }
+  .foot {
+    margin-top: auto; padding-top: 3cqmin; display: flex; align-items: baseline;
+    justify-content: space-between; gap: 3cqmin; flex-wrap: wrap;
+  }
+  .cmd { font-family: "IBM Plex Mono", monospace; font-size: 2cqmin; color: var(--ink-soft); }
+  .cmd .p { color: var(--amber); }
+  .cmd .ok { color: var(--muted); }
+  .sig { font-family: "IBM Plex Mono", monospace; font-size: 1.85cqmin; letter-spacing: 0.02em; color: var(--muted); }
+  .sig b { color: var(--ink-soft); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="artboard">
+    <div class="chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tab"><b>bruno-vs-postman</b>.md</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">Tooling note · health-data engineering</span>
+      <h1>Why <span class="k">Bruno</span>, not Postman, for FHIR work</h1>
+      <p class="dek">The API client is a governance decision, not a preference. When the collection is part of the deliverable, the defaults matter.</p>
+      <table>
+        <thead>
+          <tr><th class="axis">&nbsp;</th><th class="bruno">Bruno</th><th class="postman">Postman</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="axis">Collection</td>
+            <td class="cell bruno"><span class="row"><span class="mark">✓</span><span class="txt"><span class="mono">.bru</span> files in git — reviewed in pull requests, line-diffable</span></span></td>
+            <td class="cell postman"><span class="row"><span class="mark">–</span><span class="txt">Cloud workspace, or a noisy JSON export that barely diffs</span></span></td>
+          </tr>
+          <tr>
+            <td class="axis">Network</td>
+            <td class="cell bruno"><span class="row"><span class="mark">✓</span><span class="txt">Offline-first — no account, nothing syncs off the machine</span></span></td>
+            <td class="cell postman"><span class="row"><span class="mark">–</span><span class="txt">Cloud sync on by default; account to do much</span></span></td>
+          </tr>
+          <tr>
+            <td class="axis">Audit</td>
+            <td class="cell bruno"><span class="row"><span class="mark">✓</span><span class="txt">Open source — a security team can read exactly what it does</span></span></td>
+            <td class="cell postman"><span class="row"><span class="mark">–</span><span class="txt">Proprietary; usage telemetry you have to vet</span></span></td>
+          </tr>
+          <tr>
+            <td class="axis">CI</td>
+            <td class="cell bruno"><span class="row"><span class="mark">✓</span><span class="txt"><span class="mono">bru run</span> is free and unlimited on every commit</span></span></td>
+            <td class="cell postman"><span class="row"><span class="mark">–</span><span class="txt">Automation gated behind paid seats</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="foot">
+        <span class="cmd"><span class="p">$</span> bru run . --env hapi-sandbox &nbsp;<span class="ok">→ 8 requests, 8 passed</span></span>
+        <span class="sig"><b>Prohori</b> — FHIR-native case registry, built in the open</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

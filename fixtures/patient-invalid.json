@@ -1,0 +1,20 @@
+{
+  "resourceType": "Patient",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:prohori",
+        "code": "demo-cohort"
+      }
+    ]
+  },
+  "name": [
+    {
+      "use": "official",
+      "family": "Test",
+      "given": ["Invalid"]
+    }
+  ],
+  "gender": "banana",
+  "birthDate": "1995-06-15"
+}

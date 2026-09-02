@@ -1,0 +1,40 @@
+meta {
+  name: 08 Create Invalid Patient
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/Patient
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/fhir+json
+  Accept: application/fhir+json
+}
+
+body:json {
+  {
+    "resourceType": "Patient",
+    "meta": { "tag": [ { "system": "urn:prohori", "code": "demo-cohort" } ] },
+    "name": [ { "use": "official", "family": "Test", "given": ["Invalid"] } ],
+    "gender": "banana",
+    "birthDate": "1995-06-15"
+  }
+}
+
+docs {
+  # Force an error -> OperationOutcome
+
+  - `gender` is bound to a **required** value set: `male | female | other | unknown`.
+    `"banana"` is not in it.
+  - Expect `400 Bad Request` (or `422`) with an `OperationOutcome`:
+    - `issue[].severity` = `error`
+    - `issue[].code` = `code-invalid` / `value`
+    - `issue[].diagnostics` = human text pointing at `Patient.gender`
+    - `issue[].expression` / `location` = the FHIRPath to the bad element
+  - `OperationOutcome` is the standard error shape for EVERY failed FHIR
+    interaction — your client parses this, not a bespoke error body.
+}

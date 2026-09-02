@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Prohori — FHIR API (Phase A)",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

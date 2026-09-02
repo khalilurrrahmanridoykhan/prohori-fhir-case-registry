@@ -1,0 +1,66 @@
+meta {
+  name: 02 Create Patient
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/Patient
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/fhir+json
+  Accept: application/fhir+json
+}
+
+body:json {
+  {
+    "resourceType": "Patient",
+    "meta": {
+      "tag": [
+        { "system": "urn:prohori", "code": "demo-cohort", "display": "Prohori demo cohort" }
+      ]
+    },
+    "identifier": [
+      { "system": "http://health.gov.bd/sid", "value": "19942691012345678" }
+    ],
+    "active": true,
+    "name": [
+      { "use": "official", "family": "Khan", "given": ["Rahman"] }
+    ],
+    "gender": "male",
+    "birthDate": "1995-06-15",
+    "address": [
+      { "use": "home", "city": "Dhaka", "district": "Dhaka", "country": "Bangladesh" }
+    ]
+  }
+}
+
+script:post-response {
+  // capture the server-assigned id for the next requests
+  const loc = res.headers["location"] || res.headers["content-location"];
+  if (loc) {
+    const m = loc.match(/Patient\/([^/]+)\/_history\/([^/]+)/) || loc.match(/Patient\/([^/]+)/);
+    if (m) bru.setEnvVar("patientId", m[1]);
+  } else if (res.body && res.body.id) {
+    bru.setEnvVar("patientId", res.body.id);
+  }
+}
+
+docs {
+  # Create — POST (server assigns the id)
+
+  - **No `id` in the body.** The server generates the logical id.
+  - Success: `201 Created`.
+    - `Location` header → `[base]/Patient/{id}/_history/1` (id + version).
+    - `ETag` header → `W/"1"` (the version, for optimistic locking later).
+    - Body → the stored resource, now with `id`, `meta.versionId`,
+      `meta.lastUpdated`.
+  - The `meta.tag` `urn:prohori|demo-cohort` lets us find our own data later on
+    this shared server (`GET /Patient?_tag=urn:prohori|demo-cohort`).
+  - `identifier.system` is a plain URI — NOT Markdown link syntax. (The example
+    in `HL7_FHIR_Leaning_plan.md` §3 has `[http://...](http://...)`, which is a
+    bug: it would be stored as a literal string and break identifier search.)
+}

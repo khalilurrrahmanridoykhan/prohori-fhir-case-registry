@@ -1,0 +1,52 @@
+meta {
+  name: 04 Update Patient
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/Patient/{{patientId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/fhir+json
+  Accept: application/fhir+json
+}
+
+body:json {
+  {
+    "resourceType": "Patient",
+    "id": "{{patientId}}",
+    "meta": {
+      "tag": [
+        { "system": "urn:prohori", "code": "demo-cohort", "display": "Prohori demo cohort" }
+      ]
+    },
+    "identifier": [
+      { "system": "http://health.gov.bd/sid", "value": "19942691012345678" }
+    ],
+    "active": true,
+    "name": [
+      { "use": "official", "family": "Khan", "given": ["Rahman"] }
+    ],
+    "gender": "male",
+    "birthDate": "1995-06-15",
+    "address": [
+      { "use": "home", "city": "Narayanganj", "district": "Narayanganj", "country": "Bangladesh" }
+    ]
+  }
+}
+
+docs {
+  # Update — PUT [base]/Patient/{id}  (client supplies the id)
+
+  - The `id` in the URL **and** in the body must match.
+  - Send the **whole** resource, not a diff (use PATCH for partial changes).
+  - Changed the address city Dhaka -> Narayanganj.
+  - Success: `200 OK`, `ETag: W/"2"`, `meta.versionId` -> `2`.
+  - Version 1 is still retrievable via vread (`/Patient/{id}/_history/1`).
+  - Optimistic locking: send `If-Match: W/"1"` to make the update fail with
+    `412 Precondition Failed` if someone else changed it first.
+}

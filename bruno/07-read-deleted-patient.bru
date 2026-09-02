@@ -1,0 +1,25 @@
+meta {
+  name: 07 Read Deleted Patient
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/Patient/{{patientId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # Read after delete -> 410 Gone
+
+  - Run this right after request 06.
+  - Expect `410 Gone` with an `OperationOutcome` body.
+  - `410` (was here, now deleted) is semantically different from `404`
+    (never existed) — clients should treat them differently.
+  - The history endpoint (request 05) still works after deletion.
+}

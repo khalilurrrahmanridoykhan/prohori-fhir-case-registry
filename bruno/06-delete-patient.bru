@@ -1,0 +1,26 @@
+meta {
+  name: 06 Delete Patient
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/Patient/{{patientId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # Delete — DELETE [base]/Patient/{id}
+
+  - Success: `200 OK` or `204 No Content`.
+  - Most servers do a **soft delete**: the resource and its history are kept,
+    but the current-version read now returns `410 Gone`.
+  - Deleting an already-deleted or non-existent resource is still a success
+    (idempotent).
+  - You can usually "undelete" by PUTting a new version to the same id.
+}

@@ -1,0 +1,29 @@
+meta {
+  name: 06 Case lookup (sets patientId)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/Patient?_tag=urn:prohori|demo-cohort&name=Khan&_count=1
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+script:post-response {
+  const first = res.body && res.body.entry && res.body.entry[0];
+  if (first && first.resource && first.resource.id) {
+    bru.setVar("patientId", first.resource.id);
+  }
+}
+
+docs {
+  # Find one patient, capture the id for request 07
+
+  String `name=Khan` (starts-with) + tag scope. Post-response script stores
+  `patientId` as a runtime variable.
+}

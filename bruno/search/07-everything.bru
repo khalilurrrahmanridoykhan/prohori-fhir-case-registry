@@ -1,0 +1,26 @@
+meta {
+  name: 07 $everything — whole case in one call
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/Patient/{{patientId}}/$everything
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # Patient/{id}/$everything — the full compartment
+
+  Run request 06 first to set `patientId`. Returns a Bundle with the Patient +
+  Encounter + Observation + Condition (4 resources for a positive case).
+
+  This is the call the Phase D dashboard uses for a case timeline. Fallback where
+  it is unsupported:
+    Patient?_id={id}&_revinclude=Encounter:subject&_revinclude=Observation:subject&_revinclude=Condition:subject
+}

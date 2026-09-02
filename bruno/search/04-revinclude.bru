@@ -1,0 +1,25 @@
+meta {
+  name: 04 _revinclude — patients + their observations
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/Patient?_tag=urn:prohori|demo-cohort&_revinclude=Observation:subject&_count=50
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # _revinclude — pull in resources that POINT AT the matches
+
+  Matches: 8 Patient. Plus 8 Observation whose `subject` references them.
+  Bundle has 16 entries; `total` stays 8 (only matches count).
+  Each entry carries `search.mode` = `match` or `include`.
+
+  `_include=Observation:subject` is the forward version (Observation -> its Patient).
+}

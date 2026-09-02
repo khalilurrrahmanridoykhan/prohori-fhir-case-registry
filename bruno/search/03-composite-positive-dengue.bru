@@ -1,0 +1,23 @@
+meta {
+  name: 03 Composite — positive dengue NS1
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/Observation?code-value-concept=http://loinc.org|42239-4$http://snomed.info/sct|10828004&_tag=urn:prohori|demo-cohort
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # Composite param — two components on the SAME element occurrence
+
+  `code-value-concept = <code>$<value>` binds the LOINC code and the SNOMED
+  result value together, so a negative NS1 + a positive malaria RDT on the same
+  patient does NOT match. Expect 3 (Rahman, Jamal, Nasima).
+}

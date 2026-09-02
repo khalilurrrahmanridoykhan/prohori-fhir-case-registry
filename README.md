@@ -49,7 +49,7 @@ flowchart LR
 | Phase | Scope | Status |
 | :--- | :--- | :--- |
 | **A** | FHIR REST API by hand (Bruno + curl); repo bootstrap | ✅ complete (`phase-a`) |
-| **B** | Search — every param type, `_include`/`_revinclude`, `_has`, paging | ☐ |
+| **B** | Search — every param type, `_include`/`_revinclude`, `_has`, paging | ✅ complete (`phase-b`) |
 | **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ☐ |
 | **D** | React dashboard — case list, filters, patient timeline | ☐ |
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ☐ |
@@ -61,8 +61,8 @@ Full plan: `~/Documents/AIWORK/plan/Prohori — FHIR Field Case Registry (.NET +
 ## Repository layout
 
 ```
-bruno/         Bruno API collection (Phase A–B) — open in Bruno, or:
-scripts/       phase-a.sh — the same walkthrough in curl
+bruno/         Bruno API collection — root = Phase A CRUD, search/ = Phase B
+scripts/       phase-a.sh, seed-cohort.py, phase-b.sh — curl / Python equivalents
 fixtures/      sample FHIR resources
 docs/          phase notes, search-query catalogue, architecture, screenshots
 src/           Prohori.Api (.NET 8) — from Phase C
@@ -72,18 +72,25 @@ ig/            FHIR Shorthand sources + generated IG — from Phase E
 deploy/        Dockerfile, render.yaml, docker-compose (local HAPI)
 ```
 
-## Try Phase A
+## Try Phases A & B
 
-No toolchain needed beyond `curl` + `jq`:
+No toolchain needed beyond `curl`, `jq`, `python3`:
 
 ```bash
+# Phase A — the CRUD / history / OperationOutcome walkthrough
 bash scripts/phase-a.sh                       # against hapi.fhir.org/baseR4
-bash scripts/phase-a.sh http://localhost:8080/fhir   # against your own server
+
+# Phase B — seed a searchable cohort, then run the search catalogue
+python3 scripts/seed-cohort.py
+bash scripts/phase-b.sh
 ```
 
-Walks: `GET /metadata` → create → read → update → `_history` → delete →
-`410 Gone` → an intentional `OperationOutcome`. Findings in
-[`docs/phase-a-notes.md`](docs/phase-a-notes.md).
+Phase A walks `GET /metadata` → create → read → update → `_history` → delete →
+`410 Gone` → an intentional `OperationOutcome`
+([`docs/phase-a-notes.md`](docs/phase-a-notes.md)).
+Phase B runs 27 documented queries — string / token / date / composite params,
+modifiers, `_include` / `_revinclude`, chaining, `_has`, `_sort` / `_count` /
+paging, and `$everything` ([`docs/search-queries.md`](docs/search-queries.md)).
 
 To click through it interactively: install [Bruno](https://www.usebruno.com)
 (`brew install --cask bruno`) and open the `bruno/` folder.

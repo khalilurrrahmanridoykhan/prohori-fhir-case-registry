@@ -1,0 +1,24 @@
+meta {
+  name: 01 Find the cohort
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/Patient?_tag=urn:prohori|demo-cohort&_sort=-_lastUpdated&_count=20
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # _tag token search — isolate your own data
+
+  On a shared server, always scope by the tag you wrote on create/seed.
+  `_sort=-_lastUpdated` = newest first. Expect 8 patients after seeding.
+
+  Seed first:  python3 scripts/seed-cohort.py
+}

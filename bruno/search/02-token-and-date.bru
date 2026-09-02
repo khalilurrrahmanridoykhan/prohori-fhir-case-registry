@@ -1,0 +1,24 @@
+meta {
+  name: 02 Token + date — dengue tests since 15 Aug
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/Observation?code=http://loinc.org|42239-4&date=ge2026-08-15&_tag=urn:prohori|demo-cohort
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # token (system|code) + date prefix (ge), ANDed
+
+  `code=http://loinc.org|42239-4`  → LOINC "Dengue NS1 Ag" observations
+  `date=ge2026-08-15`              → effective date on/after 15 Aug 2026
+
+  Repeating or combining params ANDs them. Date prefixes: eq ne gt lt ge le sa eb ap.
+}

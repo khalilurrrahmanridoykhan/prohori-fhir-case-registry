@@ -1,0 +1,26 @@
+meta {
+  name: 05 _has — patients WITH a positive result
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/Patient?_has:Observation:subject:value-concept=http://snomed.info/sct|10828004&_tag=urn:prohori|demo-cohort
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # _has — reverse chaining: filter A by the existence of B that references A
+
+  Read it: `_has:<referencing type>:<param on B that points back to A>:<param on B>`
+  Here: Patients that have an Observation whose `subject` is them and whose
+  value is SNOMED "Positive". Expect 4.
+
+  This is how you ask "patients with X" when the patient resource itself
+  doesn't carry X.
+}

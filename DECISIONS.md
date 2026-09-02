@@ -2,6 +2,23 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-02 — Phase B (Search)
+
+- **Seed with a transaction Bundle** (`scripts/seed-cohort.py`, stdlib only): one
+  POST creates 8 patients + encounters + observations + conditions with
+  `urn:uuid:` refs. Building the Bundle properly is Phase C's job in .NET; here
+  it's just a means to get searchable data in.
+- **8-patient cohort** deliberately varied on sex / birth-decade / city / disease
+  / result so one small dataset exercises every search feature.
+- **Every query `_tag`-scoped** to `urn:prohori|demo-cohort` — the public server
+  is full of other people's data.
+- **Findings** (`docs/search-queries.md`): `name:exact` matches individual name
+  parts, not "given family" — use `family:exact`. HAPI ignores a `:missing`
+  modifier inside a `_has` chain. `$everything` returns the full 4-resource case
+  in one call — that's what the Phase D dashboard will use.
+- `_has` (reverse chaining) is the key idiom for "patients with a positive
+  result / a dengue diagnosis" — the patient resource carries none of that.
+
 ## 2026-09-02 — Phase A
 
 - **Repo name `prohori-fhir-case-registry`.** `prohori` (প্রহরী, "sentinel") as a

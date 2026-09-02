@@ -2,6 +2,13 @@
 
 Requests for learning and probing the FHIR REST API by hand (Phases A–B).
 
+| Folder | Phase | What |
+| :--- | :--- | :--- |
+| `01`–`08` (root) | A | CRUD, history, delete, forced `OperationOutcome` |
+| `search/` | B | token / string / date / composite params, `_revinclude`, `_has`, `$everything` |
+
+Seed the cohort before running `search/`:  `python3 ../scripts/seed-cohort.py`
+
 ## Run in the Bruno desktop app
 
 1. Open **Bruno** → *Open Collection* → select this `bruno/` folder.
@@ -16,7 +23,8 @@ Requests for learning and probing the FHIR REST API by hand (Phases A–B).
 ```bash
 npm i -g @usebruno/cli
 cd bruno
-bru run . --env hapi-sandbox --reporter-json /tmp/prohori-run.json
+bru run .      --env hapi-sandbox      # root: Phase A (01–08)
+bru run search --env hapi-sandbox      # Phase B search catalogue
 ```
 
 ## Run with plain curl

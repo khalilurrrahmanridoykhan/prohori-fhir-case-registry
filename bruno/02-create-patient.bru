@@ -15,6 +15,13 @@ headers {
   Accept: application/fhir+json
 }
 
+script:pre-request {
+  // Unique National ID + given name per run so the public HAPI server does not
+  // reject this as a duplicate resource (HAPI-2840). Reused by request 04.
+  const runId = String(Date.now()).slice(-9);
+  bru.setVar("runId", runId);
+}
+
 body:json {
   {
     "resourceType": "Patient",
@@ -24,11 +31,11 @@ body:json {
       ]
     },
     "identifier": [
-      { "system": "http://health.gov.bd/sid", "value": "19942691012345678" }
+      { "system": "http://health.gov.bd/sid", "value": "1994269{{runId}}" }
     ],
     "active": true,
     "name": [
-      { "use": "official", "family": "Khan", "given": ["Rahman"] }
+      { "use": "official", "family": "Khan", "given": ["Rahman-{{runId}}"] }
     ],
     "gender": "male",
     "birthDate": "1995-06-15",
@@ -43,9 +50,9 @@ script:post-response {
   const loc = res.headers["location"] || res.headers["content-location"];
   if (loc) {
     const m = loc.match(/Patient\/([^/]+)\/_history\/([^/]+)/) || loc.match(/Patient\/([^/]+)/);
-    if (m) bru.setEnvVar("patientId", m[1]);
+    if (m) bru.setVar("patientId", m[1]);
   } else if (res.body && res.body.id) {
-    bru.setEnvVar("patientId", res.body.id);
+    bru.setVar("patientId", res.body.id);
   }
 }
 
@@ -63,4 +70,9 @@ docs {
   - `identifier.system` is a plain URI — NOT Markdown link syntax. (The example
     in `HL7_FHIR_Leaning_plan.md` §3 has `[http://...](http://...)`, which is a
     bug: it would be stored as a literal string and break identifier search.)
+  - The pre-request script sets `{{runId}}` so the National ID + given name are
+    unique per run — otherwise HAPI's public server returns `412` with
+    `HAPI-2840: Can not create resource duplicating existing resource`.
+  - `patientId` and `runId` are set as **runtime** vars (`bru.setVar`), so no
+    environment file is modified. They live only for the current run.
 }

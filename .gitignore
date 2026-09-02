@@ -1,0 +1,44 @@
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.nupkg
+
+# --- Node / Vite (web/) ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+appsettings.*.local.json
+
+# --- FHIR IG build (ig/) ---
+ig/output/
+ig/temp/
+ig/template/
+ig/input-cache/
+fsh-generated/
+.fhir/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+*.log
+
+# --- Bruno ---
+bruno/.env

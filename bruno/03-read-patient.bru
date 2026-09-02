@@ -1,0 +1,24 @@
+meta {
+  name: 03 Read Patient
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/Patient/{{patientId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # Read — GET [base]/Patient/{id}
+
+  - Returns the **current** version of the resource.
+  - `200 OK`, `ETag: W/"1"`, `Last-Modified` header.
+  - `meta.versionId` in the body must match the `ETag`.
+  - A `404` here means the id never existed; a `410 Gone` means it was deleted.
+}

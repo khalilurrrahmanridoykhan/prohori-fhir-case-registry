@@ -1,0 +1,33 @@
+meta {
+  name: 01 Capability Statement
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/metadata
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # What the server advertises about itself
+
+  `GET [base]/metadata` returns a **CapabilityStatement** — the machine-readable
+  contract for this server:
+
+  - `fhirVersion` — which FHIR version (expect `4.0.1` for R4).
+  - `software.name` / `software.version` — e.g. HAPI FHIR 7.x.
+  - `rest[0].resource[]` — every resource type and, per type, which
+    `interaction`s (read / vread / update / create / search-type / history) and
+    which `searchParam`s it supports.
+  - `rest[0].interaction[]` — system-level interactions (transaction, batch,
+    search-system, history-system).
+
+  Read this first for ANY server before writing a client — it tells you what is
+  and is not allowed.
+}

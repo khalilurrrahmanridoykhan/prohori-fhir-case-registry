@@ -1,0 +1,27 @@
+meta {
+  name: 05 Patient History
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/Patient/{{patientId}}/_history
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+docs {
+  # History — GET [base]/Patient/{id}/_history
+
+  - Returns a `Bundle` of `type = history`, newest version first.
+  - Each `entry` has:
+    - `entry.resource` — that version of the resource.
+    - `entry.request.method` — POST / PUT / DELETE (what produced this version).
+    - `entry.response.status` + `entry.response.etag` + `entry.response.lastModified`.
+  - After create + one update you should see 2 entries (versions 2 then 1).
+  - This is the audit trail — every change is retained and addressable.
+}

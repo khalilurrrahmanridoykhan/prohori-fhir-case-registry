@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/hapi
+    username: hapi
+    password: hapi
+    driverClassName: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+      hibernate.search.enabled: false
+
+hapi:
+  fhir:
+    fhir_version: R4
+    default_encoding: json
+    allow_multiple_delete: true
+    allow_external_references: true
+    cors:
+      allowed_origin:
+        - "*"
+
+    # Validate every write against the resource's declared meta.profile.
+    # Load the ProhoriPatient StructureDefinition first: bash scripts/load-profile.sh
+    validation:
+      requests_enabled: true
+      responses_enabled: false

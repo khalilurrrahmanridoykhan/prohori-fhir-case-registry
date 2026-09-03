@@ -1,0 +1,20 @@
+id: prohori.fhir.core
+canonical: https://prohori.health/fhir
+name: ProhoriCore
+title: "Prohori Core — FHIR profiles for the field case registry"
+description: >-
+  Conformance profiles the Prohori registry enforces on submitted resources.
+  A learning build in the spirit of Bangladesh's BD-Core-FHIR-IG.
+status: draft
+version: 0.1.0
+fhirVersion: 4.0.1
+copyrightYear: 2026+
+releaseLabel: ci-build
+license: Apache-2.0
+publisher:
+  name: Khalilur Rahman Ridoy Khan
+  url: https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry
+
+# Generate FHIR artifacts only — no IG Publisher / HTML site in this phase.
+FSHOnly: true
+applyExtensionMetadataToRoot: false

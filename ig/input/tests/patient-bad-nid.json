@@ -1,0 +1,10 @@
+{
+  "resourceType": "Patient",
+  "meta": { "profile": ["https://prohori.health/fhir/StructureDefinition/prohori-patient"] },
+  "identifier": [
+    { "system": "http://health.gov.bd/sid", "value": "not-digits" }
+  ],
+  "name": [{ "use": "official", "family": "Khan", "given": ["Rahman"] }],
+  "gender": "male",
+  "birthDate": "1995-06-15"
+}

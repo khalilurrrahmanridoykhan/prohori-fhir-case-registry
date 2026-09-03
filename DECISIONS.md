@@ -2,6 +2,30 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-03 — Phase E (own server + profile)
+
+- **Local server:** `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0` +
+  `postgres:16`, HAPI config in `deploy/hapi/application.yaml` with
+  `hapi.fhir.validation.requests_enabled: true`. Data in a named volume.
+- **Profile authored in FSH** (`ig/input/fsh/ProhoriPatient.fsh`), built with
+  **SUSHI** (`FSHOnly: true` — no IG website, just the FHIR artifacts).
+  `fsh-generated/` **is committed** so the profile is usable and validatable
+  without running SUSHI.
+- **ProhoriPatient** requires: a National-ID identifier (sliced by `system`,
+  fixed to `http://health.gov.bd/sid`, `value` matches `^[0-9]{10,17}$` via
+  invariant), `name` + `name.family`, `gender`, `birthDate`.
+- **Enforcement, two layers:** (1) HAPI validates writes against `meta.profile`
+  after `scripts/load-profile.sh` pushes the SD; (2) `scripts/validate-ig.sh`
+  runs HL7's `validator_cli.jar` against `ig/input/tests/` fixtures in CI.
+- **Chose the official validator CLI over `Hl7.Fhir.Specification`** (the plan's
+  original call). Firely SDK 6.x dropped the in-process `Validator`;
+  `Firely.Fhir.Validation` 3.x gates snapshot generation behind an Enterprise
+  licence. `validator_cli.jar` is HL7's reference impl, needed for Phase F
+  anyway, runs on Java 11+.
+- Shell gotcha: `grep -q` + `set -o pipefail` gives a false failure when the
+  upstream process is still writing (SIGPIPE). `validate-ig.sh` uses the
+  validator's exit code instead.
+
 ## 2026-09-03 — Phase D (React dashboard)
 
 - **React 19 + Vite + TS** via `create-vite` (v9 template — ships `oxlint`). Deps:

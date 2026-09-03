@@ -2,6 +2,32 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-03 — Phase D (React dashboard)
+
+- **React 19 + Vite + TS** via `create-vite` (v9 template — ships `oxlint`). Deps:
+  `react-router-dom` 7, `@tanstack/react-query` 5, `@types/fhir` (dev).
+- **No FHIR SDK in the browser** — plain `fetch` + `@types/fhir` types. This
+  `@types/fhir` (0.0.44) is ESM (`export interface Patient`), not a global
+  `fhir4` namespace — so resource types are imported via a barrel,
+  `src/fhir/r4.ts` (`export type { Patient } from "fhir/r4"`).
+- **One query for the case list**: `Encounter` anchored, `_include` the Patient,
+  `_revinclude` the Observation + Condition — one round trip, grouped client-side
+  into one row per visit. Every case has exactly one Encounter, so Encounter is
+  the right anchor (Observation-anchored would miss nothing but Condition-anchored
+  would drop the negatives).
+- **Filters are client-side** over the loaded set — fine for a demo cohort;
+  noted that server-side params are the scale answer.
+- **Timeline** = `Patient/{id}/$everything`, sorted by date. `recordedDate` on a
+  Condition is date-only so it can sort before the visit — a real data nuance,
+  left as-is.
+- Dashboard reads the FHIR server **directly**, not through `Prohori.Api` (the
+  API is write-only so far). HAPI's public server sends `Access-Control-Allow-Origin: *`
+  so browser calls work with no proxy.
+- Theming: `:root` = light palette, `@media (prefers-color-scheme: dark)` swaps
+  tokens. No theme toggle, so the artifact-skill's 3-state pattern isn't needed.
+- Added `scripts/reset-cohort.sh` — delete all `_tag`-matched resources
+  (Condition→Observation→Encounter→Patient order) for a clean re-seed.
+
 ## 2026-09-02 — Phase C (.NET 8 + Firely write client)
 
 - **Firely `Hl7.Fhir.R4` 6.4.0** (not the 5.x the plan assumed — 6.x is current).

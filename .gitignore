@@ -46,3 +46,4 @@ Thumbs.db
 
 # --- Bruno ---
 bruno/.env
+.bd-core/

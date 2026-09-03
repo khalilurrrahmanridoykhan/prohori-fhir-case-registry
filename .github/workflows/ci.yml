@@ -70,6 +70,22 @@ jobs:
       - name: Validate the profile against the expectation fixtures
         run: bash scripts/validate-ig.sh
 
+  bd-core:
+    name: BD-Core — build Bundle + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: dotnet build -c Release src/Prohori.Api
+      - name: Build the BD-Core Bundle and validate against bd.fhir.core
+        run: bash scripts/bd-core.sh   # no --submit in CI
+
   integration:
     name: integration tests (sandbox, non-blocking)
     runs-on: ubuntu-latest

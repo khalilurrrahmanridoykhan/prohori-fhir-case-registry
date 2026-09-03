@@ -2,6 +2,27 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-03 — Phase F (BD-Core conformance + live submission)
+
+- **`BdCoreBundleBuilder`** + `POST /bd-core/cases` (`?dryRun=true` returns the
+  Bundle). Consumes the published `bd.fhir.core#0.4.6` profiles — Prohori doesn't
+  re-profile.
+- **Result:** validator_cli **0 errors** against `bd.fhir.core`, and the **live
+  DGHS sandbox accepted** the 5-resource Bundle (IDs in
+  `docs/bd-core-submission.md`).
+- **5 resources, not 6** — no separate `Condition`. `bd-condition` v0.4.6 binds
+  `Condition.code` (`required`) to `bd-condition-icd11-diagnosis-valueset`, which
+  ships with an **empty `compose`** — unsatisfiable. Reported as a finding;
+  diagnosis recorded on `Encounter.reasonCode` (ICD-11 MMS, unconstrained).
+- **`bd-patient` quirk:** `identifier:NID.type.text` is pattern-pinned to the
+  literal `"Organization identifier"` (an IG copy-paste artefact). Matched for
+  conformance, with a code comment.
+- `If-None-Exist` on facility code / HRIS code / NID → Organization, Practitioner
+  and Patient are reused across submissions.
+- `#nullable disable` on `BdCoreBundleBuilder.cs` (Firely model, same rationale
+  as the test project).
+- Optional add-ons (GIS / ODK / DHIS2) deferred — primary goal met.
+
 ## 2026-09-03 — Phase E (own server + profile)
 
 - **Local server:** `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0` with

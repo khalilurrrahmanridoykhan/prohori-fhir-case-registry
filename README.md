@@ -55,7 +55,7 @@ flowchart LR
 | **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ✅ complete (`phase-c`) |
 | **D** | React dashboard — case list, filters, patient timeline | ✅ complete (`phase-d`) |
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ✅ complete (`phase-e`) |
-| **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ☐ |
+| **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ✅ complete (`phase-f`) |
 | **G** | Ship it live — Vercel + Render, seed data, polish | ☐ |
 
 Full plan: `~/Documents/AIWORK/plan/Prohori — FHIR Field Case Registry (.NET + Firely) — Plan.md`.
@@ -70,7 +70,8 @@ docs/                  phase notes, search-query catalogue, architecture, screen
 src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a transaction Bundle
   Fhir/                CaseBundleBuilder, FhirCaseService, OperationOutcomeMapper
   Models/              CaseSubmission DTO
-tests/Prohori.Api.Tests/  xUnit — 19 unit + 2 integration (Category=Integration)
+  Fhir/BdCore*             BD-Core-FHIR-IG bundle builder (Phase F) — POST /bd-core/cases
+tests/Prohori.Api.Tests/  xUnit — 30 unit + 2 integration (Category=Integration)
 .github/workflows/     ci.yml — .NET build+tests, dashboard build, IG validate, integration
 web/                   React 19 + Vite + TS dashboard (Phase D)
 ig/                    FHIR Shorthand profile (Phase E); SUSHI-generated output is gitignored
@@ -157,6 +158,20 @@ The local server then validates every write against the resource's `meta.profile
 — a Patient without a Bangladesh National ID comes back `422`.
 See [`docs/phase-e-notes.md`](docs/phase-e-notes.md) and [`ig/README.md`](ig/README.md).
 
+## Submit to Bangladesh's national FHIR sandbox (Phase F)
+
+```bash
+bash scripts/bd-core.sh            # build a BD-Core Bundle + validate against bd.fhir.core
+bash scripts/bd-core.sh --submit   # ... then POST it to sandbox.fhir.dghs.gov.bd
+```
+
+`POST /bd-core/cases` on the API builds a 5-resource transaction Bundle
+(Organization / Practitioner / Patient / Encounter / Observation) conformant to
+**BD-Core-FHIR-IG v0.4.6** — UHID + NID identifiers, Bangla/English name
+extensions, division/upazila geocodes, ICD-11 diagnosis. Verified: **0 validator
+errors** and **accepted by the live DGHS sandbox**.
+See [`docs/bd-core-submission.md`](docs/bd-core-submission.md).
+
 ## Development
 
 | Phase | Prereqs |
@@ -165,7 +180,7 @@ See [`docs/phase-e-notes.md`](docs/phase-e-notes.md) and [`ig/README.md`](ig/REA
 | C | .NET 8 SDK |
 | D | Node 22+ |
 | E | Docker or Colima (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
-| F | Java 11+ (`validator_cli.jar`), the BD-Core package |
+| F | .NET 8 SDK, Java 11+ (`validator_cli.jar`) — `scripts/bd-core.sh` fetches the BD-Core package |
 
 ## Standards & references
 

@@ -1,0 +1,32 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "processing",
+      "diagnostics": "Patient.identifier: minimum required = 1, but only found 0 (from https://prohori.health/fhir/StructureDefinition/prohori-patient|0.1.0)",
+      "location": [
+        "Patient",
+        "Line[1] Col[2]"
+      ]
+    },
+    {
+      "severity": "error",
+      "code": "processing",
+      "diagnostics": "Slice 'Patient.identifier:nationalId': a matching slice is required, but not found (from https://prohori.health/fhir/StructureDefinition/prohori-patient|0.1.0). Note that other slices are allowed in addition to this required slice",
+      "location": [
+        "Patient",
+        "Line[1] Col[2]"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "processing",
+      "diagnostics": "Constraint failed: dom-6: 'A resource should have narrative for robust management' (defined in http://hl7.org/fhir/StructureDefinition/DomainResource) (Best Practice Recommendation)",
+      "location": [
+        "Patient",
+        "Line[1] Col[2]"
+      ]
+    }
+  ]
+}

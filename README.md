@@ -4,13 +4,15 @@
 .NET 8 + Firely SDK (API & transaction-Bundle builder) · React + Vite (surveillance dashboard) · HL7 FHIR R4 / [BD-Core-FHIR-IG](https://fhir.dghs.gov.bd/core/)
 
 ![status](https://img.shields.io/badge/status-in%20development-orange)
-![phase](https://img.shields.io/badge/phase-A%20complete-blue)
+![phase](https://img.shields.io/badge/phase-D%20complete-blue)
 ![FHIR](https://img.shields.io/badge/FHIR-R4%20(4.0.1)-red)
 ![license](https://img.shields.io/badge/license-Apache--2.0-green)
 
 > *Prohori* (প্রহরী) — Bengali for **sentinel / guardian**.
 
 ---
+
+![Prohori case surveillance dashboard](docs/screenshots/dashboard.png)
 
 ## What it is
 
@@ -51,7 +53,7 @@ flowchart LR
 | **A** | FHIR REST API by hand (Bruno + curl); repo bootstrap | ✅ complete (`phase-a`) |
 | **B** | Search — every param type, `_include`/`_revinclude`, `_has`, paging | ✅ complete (`phase-b`) |
 | **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ✅ complete (`phase-c`) |
-| **D** | React dashboard — case list, filters, patient timeline | ☐ |
+| **D** | React dashboard — case list, filters, patient timeline | ✅ complete (`phase-d`) |
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ☐ |
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ☐ |
 | **G** | Ship it live — Vercel + Render, seed data, polish | ☐ |
@@ -69,8 +71,8 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/                CaseBundleBuilder, FhirCaseService, OperationOutcomeMapper
   Models/              CaseSubmission DTO
 tests/Prohori.Api.Tests/  xUnit — 19 unit + 2 integration (Category=Integration)
-.github/workflows/     ci.yml — build + unit tests; integration job (non-blocking)
-web/                   React + Vite dashboard — from Phase D
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, integration (non-blocking)
+web/                   React 19 + Vite + TS dashboard (Phase D)
 ig/                    FHIR Shorthand sources + generated IG — from Phase E
 deploy/                Dockerfile, render.yaml, docker-compose (local HAPI)
 ```
@@ -121,6 +123,25 @@ curl -X POST localhost:5279/cases -H 'Content-Type: application/json' -d '{
 ```
 
 Point it at another server: `Fhir__BaseUrl=http://localhost:8080/fhir dotnet run --project src/Prohori.Api`.
+
+## Run the dashboard (Phase D)
+
+Needs **Node 22+**. Reads the FHIR server directly (no API dependency for the read views).
+
+```bash
+python3 scripts/seed-cohort.py          # put a demo cohort on the server
+cd web
+cp .env.example .env
+npm install
+npm run dev                              # http://localhost:5173
+```
+
+Case list, summary tiles, filters (disease / result / city / date), and a
+per-patient timeline via `$everything`. See [`web/README.md`](web/README.md).
+
+| | |
+| :--- | :--- |
+| ![dashboard](docs/screenshots/dashboard.png) | ![case detail](docs/screenshots/case-detail.png) |
 
 ## Development
 

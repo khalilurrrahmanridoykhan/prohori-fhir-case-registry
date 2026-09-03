@@ -35,6 +35,23 @@ jobs:
           name: test-results
           path: TestResults/*.trx
 
+  web:
+    name: dashboard build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc -b
+      - run: npm run build
+
   integration:
     name: integration tests (sandbox, non-blocking)
     runs-on: ubuntu-latest

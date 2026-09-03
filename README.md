@@ -3,12 +3,16 @@
 **FHIR-native field case registry for vector-borne disease.**
 .NET 8 + Firely SDK (API & transaction-Bundle builder) · React + Vite (surveillance dashboard) · HL7 FHIR R4 / [BD-Core-FHIR-IG](https://fhir.dghs.gov.bd/core/)
 
-![status](https://img.shields.io/badge/status-in%20development-orange)
-![phase](https://img.shields.io/badge/phase-D%20complete-blue)
+[![CI](https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry/actions/workflows/ci.yml/badge.svg)](https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry/actions/workflows/ci.yml)
 ![FHIR](https://img.shields.io/badge/FHIR-R4%20(4.0.1)-red)
+![BD-Core](https://img.shields.io/badge/BD--Core--FHIR--IG-0.4.6%20%E2%9C%93%20sandbox%20accepted-2e7d32)
 ![license](https://img.shields.io/badge/license-Apache--2.0-green)
 
 > *Prohori* (প্রহরী) — Bengali for **sentinel / guardian**.
+
+**Live:** dashboard on Vercel · API on Render — see [Deploy](#deploy-phase-g).
+A case Bundle built by this project is **accepted by Bangladesh's national FHIR
+sandbox** ([`docs/bd-core-submission.md`](docs/bd-core-submission.md)).
 
 ---
 
@@ -33,18 +37,19 @@ Diseases in scope: **dengue** (SNOMED `38362002` / ICD-10 `A90`), **malaria**
 
 ```mermaid
 flowchart LR
-  CHW["CHW intake\n(React form)"] -->|POST /cases| API["Prohori.Api\n.NET 8 + Firely SDK"]
-  API -->|transaction Bundle| FHIR[("FHIR R4 server\nHAPI / BD-Core sandbox")]
-  SUP["Supervisor dashboard\nReact + Vite"] -->|search / $everything| FHIR
-  API -.->|OperationOutcome| CHW
+  CHW["field intake"] -->|"POST /cases · /bd-core/cases"| API["Prohori.Api<br/>.NET 8 + Firely SDK"]
+  API -->|"transaction Bundle"| FHIR[("FHIR R4 server<br/>local HAPI · BD-Core sandbox")]
+  SUP["Surveillance dashboard<br/>React + Vite"] -->|"search · $everything"| FHIR
+  API -.->|"OperationOutcome / ProblemDetails"| CHW
 ```
 
-| Component | Stack | Hosting (live) |
+| Component | Stack | Hosting (free) |
 | :--- | :--- | :--- |
-| `web/` — dashboard + intake | React 18, Vite, TypeScript | Vercel (free) |
-| `src/Prohori.Api` — bundle builder + submit API | .NET 8, `Hl7.Fhir.R4` | Render (free web service) |
-| FHIR data store | HAPI FHIR R4 | BD-Core sandbox (`sandbox.fhir.dghs.gov.bd/fhir`) |
-| `ig/` — conformance profiles | FHIR Shorthand + SUSHI | published with the repo |
+| `web/` — surveillance dashboard | React 19, Vite, TanStack Query | Vercel |
+| `src/Prohori.Api` — Bundle builder + submit API | .NET 8, Firely `Hl7.Fhir.R4` | Render (Docker web service) |
+| FHIR data store | HAPI FHIR R4 | `sandbox.fhir.dghs.gov.bd/fhir` (DGHS) |
+| `ig/` — `ProhoriPatient` profile | FHIR Shorthand + SUSHI | in-repo, validated in CI |
+| `deploy/` — local HAPI | `hapiproject/hapi` + Docker Compose | your machine (Phase E) |
 
 ## Build phases
 
@@ -56,9 +61,7 @@ flowchart LR
 | **D** | React dashboard — case list, filters, patient timeline | ✅ complete (`phase-d`) |
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ✅ complete (`phase-e`) |
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ✅ complete (`phase-f`) |
-| **G** | Ship it live — Vercel + Render, seed data, polish | ☐ |
-
-Full plan: `~/Documents/AIWORK/plan/Prohori — FHIR Field Case Registry (.NET + Firely) — Plan.md`.
+| **G** | Ship it live — Vercel + Render, seed data, polish | ✅ config ready (`phase-g`) — see [Deploy](#deploy-phase-g) |
 
 ## Repository layout
 
@@ -172,6 +175,33 @@ extensions, division/upazila geocodes, ICD-11 diagnosis. Verified: **0 validator
 errors** and **accepted by the live DGHS sandbox**.
 See [`docs/bd-core-submission.md`](docs/bd-core-submission.md).
 
+## Deploy (Phase G)
+
+Everything is configured for a **$0** deploy. One-time setup:
+
+**Dashboard → Vercel**
+1. [vercel.com/new](https://vercel.com/new) → import
+   `khalilurrrahmanridoykhan/prohori-fhir-case-registry`
+2. Root Directory: **`web`** · Framework: Vite (auto-detected)
+3. Deploy. `web/.env.production` already points `VITE_FHIR_BASE` at the DGHS sandbox.
+   Pushes to `main` auto-deploy.
+
+**API → Render**
+1. [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** →
+   connect the repo. It reads [`deploy/render.yaml`](deploy/render.yaml)
+   (free Docker web service, `/health` check, `Fhir__BaseUrl` → DGHS sandbox).
+2. After the first deploy, add repo variable `RENDER_API_URL` (Settings → Secrets
+   and variables → Actions → Variables) so
+   [`keepalive.yml`](.github/workflows/keepalive.yml) pings it every 13 min.
+
+**Seed the demo data** so the live dashboard isn't empty:
+
+```bash
+python3 scripts/seed-cohort.py https://sandbox.fhir.dghs.gov.bd/fhir
+```
+
+Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
+
 ## Development
 
 | Phase | Prereqs |
@@ -181,6 +211,12 @@ See [`docs/bd-core-submission.md`](docs/bd-core-submission.md).
 | D | Node 22+ |
 | E | Docker or Colima (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
 | F | .NET 8 SDK, Java 11+ (`validator_cli.jar`) — `scripts/bd-core.sh` fetches the BD-Core package |
+| G | a Vercel account + a Render account (both free) |
+
+## Phase-by-phase
+
+Each phase is one PR + a `phase-*` tag; `main` is always demoable. Notes and
+decisions live in [`DECISIONS.md`](DECISIONS.md) and `docs/phase-*-notes.md`.
 
 ## Standards & references
 

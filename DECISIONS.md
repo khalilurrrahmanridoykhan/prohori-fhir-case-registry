@@ -2,6 +2,21 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-03 — Phase G (ship it live)
+
+- **Dashboard → Vercel**, **API → Render** (Docker), **FHIR store → DGHS sandbox**
+  — all free tiers. `web/.env.production` and `deploy/render.yaml` bake in the
+  sandbox URL; no dashboard config needed.
+- **`deploy/Dockerfile`** — multi-stage .NET 8, runs as the image's `app` user on
+  `:8080`. `.dockerignore` keeps host `bin/obj` out (they clobber the container
+  restore). `global.json` relaxed to `rollForward: latestMinor`.
+- **`keepalive.yml`** — 13-min cron ping so Render's free service doesn't sleep;
+  no-ops until the `RENDER_API_URL` repo variable is set.
+- **Vercel + Render both need a one-time dashboard connect** (GitHub auth) — the
+  Vercel MCP deploy is `403 forbidden` for this hobby-team project. Steps in the
+  README "Deploy" section.
+- `seed-cohort.py` seeds the DGHS sandbox one transaction per patient.
+
 ## 2026-09-03 — Phase F (BD-Core conformance + live submission)
 
 - **`BdCoreBundleBuilder`** + `POST /bd-core/cases` (`?dryRun=true` returns the

@@ -10,9 +10,11 @@
 
 > *Prohori* (প্রহরী) — Bengali for **sentinel / guardian**.
 
-**Live:** dashboard on Vercel · API on Render — see [Deploy](#deploy-phase-g).
-A case Bundle built by this project is **accepted by Bangladesh's national FHIR
-sandbox** ([`docs/bd-core-submission.md`](docs/bd-core-submission.md)).
+**Live dashboard → https://prohori-fhir-case-registry.vercel.app** (reads
+Bangladesh's national FHIR sandbox directly). A case Bundle built by this project
+is **accepted by that sandbox** ([`docs/bd-core-submission.md`](docs/bd-core-submission.md)).
+The .NET API deploys to Render from [`deploy/render.yaml`](deploy/render.yaml) —
+see [Deploy](#deploy-phase-g).
 
 ---
 
@@ -179,12 +181,9 @@ See [`docs/bd-core-submission.md`](docs/bd-core-submission.md).
 
 Everything is configured for a **$0** deploy. One-time setup:
 
-**Dashboard → Vercel**
-1. [vercel.com/new](https://vercel.com/new) → import
-   `khalilurrrahmanridoykhan/prohori-fhir-case-registry`
-2. Root Directory: **`web`** · Framework: Vite (auto-detected)
-3. Deploy. `web/.env.production` already points `VITE_FHIR_BASE` at the DGHS sandbox.
-   Pushes to `main` auto-deploy.
+**Dashboard → Vercel** — **done:** https://prohori-fhir-case-registry.vercel.app
+(import the repo, Root Directory `web`, Framework Vite; `web/.env.production`
+points `VITE_FHIR_BASE` at the DGHS sandbox; pushes to `main` auto-deploy).
 
 **API → Render**
 1. [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** →

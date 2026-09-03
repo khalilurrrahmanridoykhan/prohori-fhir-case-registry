@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="base.css" />
+<style>
+  h1 { max-width: 21ch; }
+  .lede {
+    margin-top: 32px;
+    font-family: var(--mono);
+    font-size: 20px;
+    line-height: 1.64;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+  .cmd {
+    margin-top: 44px;
+    font-family: var(--mono);
+    font-size: 19px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--ok);
+    border-radius: 8px;
+    padding: 24px 26px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .cmd .verb { color: var(--amber); font-weight: 600; }
+  .cmd .arr { color: var(--muted); margin: 0 10px; }
+  .cmd .code { color: var(--ok); font-weight: 600; }
+
+  .spine {
+    margin-top: 60px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    position: relative;
+    padding-top: 44px;
+  }
+  .spine::before {
+    content: "";
+    position: absolute;
+    left: 15px; right: 15px; top: 61px;
+    height: 1.5px;
+    background: var(--rule);
+  }
+  .ph { display: flex; flex-direction: column; gap: 13px; padding-right: 14px; position: relative; }
+  .ph .dot {
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
+    width: 34px; height: 34px; display: grid; place-items: center;
+    border-radius: 50%; border: 1.5px solid var(--border); color: var(--muted);
+    background: var(--panel);
+  }
+  .ph.win .dot { border-color: var(--ok); color: var(--ok); background: var(--ok-wash); }
+  .ph label { font-family: var(--mono); font-size: 14px; line-height: 1.4; color: var(--muted); }
+  .ph.win label { color: var(--ink-soft); }
+  .foot { margin-top: 46px; }
+</style>
+</head>
+<body>
+  <div class="board">
+    <div class="chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tab">prohori<b>.fhir</b></span>
+      <span class="chrome-right">HL7 FHIR R4 · 4.0.1</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">FHIR interoperability · built in the open</span>
+      <h1>My case bundle passed <span class="k">HL7's validator</span> — and was
+      <span class="ok">accepted by Bangladesh's national FHIR server.</span></h1>
+      <p class="lede">Prohori — a FHIR-native field-case registry for dengue &amp;
+      malaria. Learned the spec from scratch, then built the write API, the
+      conformance profile and the dashboard, one phase at a time.</p>
+      <div class="cmd">
+        <span class="verb">POST</span> https://sandbox.fhir.dghs.gov.bd/fhir
+        <span class="arr">→</span> <span class="code">HTTP 200 · resources created</span>
+      </div>
+
+      <div class="spine">
+        <div class="ph"><span class="dot">A</span><label>API<br>by hand</label></div>
+        <div class="ph"><span class="dot">B</span><label>Search</label></div>
+        <div class="ph"><span class="dot">C</span><label>.NET + Firely<br>write client</label></div>
+        <div class="ph"><span class="dot">D</span><label>Dashboard</label></div>
+        <div class="ph"><span class="dot">E</span><label>Own server<br>+ profile</label></div>
+        <div class="ph win"><span class="dot">F</span><label>BD-Core<br>conformance ✓</label></div>
+        <div class="ph"><span class="dot">G</span><label>Live</label></div>
+      </div>
+      <div class="foot">
+        <span class="stack">.NET 8 · Firely SDK · React 19 · FHIR Shorthand / SUSHI · HAPI FHIR · Docker · GitHub Actions</span>
+        <span class="repo">github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

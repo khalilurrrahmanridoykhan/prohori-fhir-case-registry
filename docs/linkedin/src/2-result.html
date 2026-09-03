@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="base.css" />
+<style>
+  h1 { font-size: 48px; max-width: 20ch; }
+  .diptych {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+  .pane {
+    background: #0d1518;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .pane-h {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 13.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--chrome);
+  }
+  .pane-b {
+    padding: 24px 20px;
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    white-space: pre-wrap;
+    flex: 1;
+  }
+  .pane-b .p { color: var(--amber); }
+  .pane-b .dim { color: var(--muted); }
+  .pane-b .ok { color: var(--ok); font-weight: 600; }
+  .pane-b .warn { color: #d7a24a; }
+  .finding {
+    margin-top: 34px;
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1.68;
+    color: var(--muted);
+    border-left: 4px solid var(--pulse);
+    padding-left: 18px;
+  }
+  .finding b { color: var(--ink-soft); font-weight: 600; }
+  .foot { margin-top: 46px; }
+</style>
+</head>
+<body>
+  <div class="board">
+    <div class="chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tab">bd-core<b>.sh</b></span>
+      <span class="chrome-right">BD-Core-FHIR-IG v0.4.6</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">standards conformance · BD-Core-FHIR-IG</span>
+      <h1>Validated by HL7. Accepted by the government's FHIR server.</h1>
+
+      <div class="diptych">
+        <div class="pane">
+          <div class="pane-h">HL7 official validator → bd.fhir.core#0.4.6</div>
+          <div class="pane-b"><span class="p">$</span> java -jar validator_cli.jar \
+     bundle.json -ig bd.fhir.core#0.4.6
+
+<span class="dim">  Validate Bundle …………|</span>
+<span class="ok">  Success: 0 errors</span><span class="warn">, 9 warnings</span>
+<span class="dim">  (warnings = narrative best-practice</span>
+<span class="dim">   + a v2 identifier-type note)</span></div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-h">the live DGHS government sandbox</div>
+          <div class="pane-b"><span class="p">POST</span> sandbox.fhir.dghs.gov.bd/fhir
+<span class="ok">HTTP 200</span>  <span class="dim">transaction-response</span>
+
+  <span class="ok">201</span>  Encounter/ce03b62d…
+  <span class="ok">201</span>  Observation/db40fcfa…
+  <span class="ok">200</span>  Patient/8ba33898…  <span class="dim">reused via</span>
+  <span class="ok">200</span>  Organization/7837…  <span class="dim">If-None-Exist</span></div>
+        </div>
+      </div>
+
+      <p class="finding">Building it surfaced a real defect —
+      <b>BD-Core 0.4.6's <code>bd-condition</code> can't be submitted</b>: its
+      required ICD-11 diagnosis ValueSet ships empty. Reported; worked around on
+      <code>Encounter.reasonCode</code>.</p>
+
+      <div class="foot">
+        <span class="stack">Bundle → Organization · Practitioner · Patient · Encounter · Observation — UHID/NID, Bangla + English name, division / upazila geocodes, ICD-11</span>
+        <span class="repo">docs/bd-core-submission.md</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

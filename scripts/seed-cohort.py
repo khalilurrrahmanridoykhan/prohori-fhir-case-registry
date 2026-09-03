@@ -18,6 +18,7 @@ import json
 import sys
 import time
 import urllib.request
+import uuid
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "https://hapi.fhir.org/baseR4").rstrip("/")
 RUN = str(int(time.time()))[-7:]           # unique-per-run suffix (dodges HAPI-2840)
@@ -62,7 +63,11 @@ def entry(fullurl, resource, url):
 def build_bundle():
     entries = []
     for i, (name, gender, birth, city, district, disease, positive, visit) in enumerate(COHORT, 1):
-        p, e, o = f"urn:uuid:patient-{i}", f"urn:uuid:encounter-{i}", f"urn:uuid:obs-{i}"
+        # real lowercase UUIDs — a validating server (Phase E's local HAPI) rejects
+        # placeholder fullUrls like "urn:uuid:patient-1".
+        p = f"urn:uuid:{uuid.uuid4()}"
+        e = f"urn:uuid:{uuid.uuid4()}"
+        o = f"urn:uuid:{uuid.uuid4()}"
         family = name.split()[-1]
         given = name.split()[:-1]
 
@@ -105,7 +110,7 @@ def build_bundle():
 
         if positive:
             sct, icd = DX[disease]["sct"], DX[disease]["icd"]
-            entries.append(entry(f"urn:uuid:cond-{i}", {
+            entries.append(entry(f"urn:uuid:{uuid.uuid4()}", {
                 "resourceType": "Condition",
                 "meta": {"tag": [TAG]},
                 "clinicalStatus": {"coding": [{"system": COND_CLIN, "code": "active"}]},

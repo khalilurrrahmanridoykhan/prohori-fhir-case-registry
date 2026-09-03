@@ -146,13 +146,15 @@ per-patient timeline via `$everything`. See [`web/README.md`](web/README.md).
 ## Run your own server + profile (Phase E)
 
 ```bash
-docker compose -f deploy/docker-compose.yml up -d       # HAPI + Postgres
+# macOS daemon (no Docker Desktop needed): brew install colima docker docker-compose && colima start --cpu 4 --memory 6
+docker compose -f deploy/docker-compose.yml up -d       # HAPI FHIR (embedded H2)
 cd ig && sushi . --snapshot && cd ..                    # build the ProhoriPatient profile
 bash scripts/load-profile.sh                            # push it into the local HAPI
 bash scripts/validate-ig.sh                             # check it against the expectation fixtures
 ```
 
-The local server validates every write against the resource's `meta.profile`.
+The local server then validates every write against the resource's `meta.profile`
+— a Patient without a Bangladesh National ID comes back `422`.
 See [`docs/phase-e-notes.md`](docs/phase-e-notes.md) and [`ig/README.md`](ig/README.md).
 
 ## Development
@@ -162,7 +164,7 @@ See [`docs/phase-e-notes.md`](docs/phase-e-notes.md) and [`ig/README.md`](ig/REA
 | A–B | `curl`, `jq`, `python3`, optionally Bruno |
 | C | .NET 8 SDK |
 | D | Node 22+ |
-| E | Docker (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
+| E | Docker or Colima (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
 | F | Java 11+ (`validator_cli.jar`), the BD-Core package |
 
 ## Standards & references

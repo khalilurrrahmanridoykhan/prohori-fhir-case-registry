@@ -4,9 +4,16 @@ One dated line per non-obvious choice. Newest at the top.
 
 ## 2026-09-03 — Phase E (own server + profile)
 
-- **Local server:** `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0` +
-  `postgres:16`, HAPI config in `deploy/hapi/application.yaml` with
-  `hapi.fhir.validation.requests_enabled: true`. Data in a named volume.
+- **Local server:** `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0` with
+  **embedded H2** (persisted to a volume), config layered via
+  `SPRING_CONFIG_ADDITIONAL_LOCATION` (only CORS + `validation.requests_enabled`).
+  Dropped Postgres: HAPI v8's bundled Flyway rejects Postgres 15 **and** 16
+  (`Unsupported Database`), and disabling Flyway trips a bean-init cycle. Container
+  runs as `root` to write the H2 file on the volume. On macOS, **Colima**
+  provides the daemon (no Docker Desktop / GUI licence).
+- **Verified 2026-09-03:** local HAPI rejects a Patient with no NID / wrong
+  identifier system / non-digit NID (`422` + profile `OperationOutcome`); accepts
+  the conformant one; `Prohori.Api` runs against it with only an env-var change.
 - **Profile authored in FSH** (`ig/input/fsh/ProhoriPatient.fsh`), built with
   **SUSHI** (`FSHOnly: true` — no IG website, just the FHIR artifacts).
   `fsh-generated/` stays **gitignored** (generated); CI regenerates it in the

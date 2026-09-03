@@ -11,16 +11,31 @@ Two things this phase adds:
 
 ## 1. Run a local HAPI FHIR server
 
+On macOS without Docker Desktop, use Colima for the daemon:
+
 ```bash
-docker compose -f deploy/docker-compose.yml up -d
-# wait for health, then:
-curl -s http://localhost:8080/fhir/metadata | jq .software
+brew install colima docker docker-compose
+colima start --cpu 4 --memory 6
 ```
 
-- `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0` + `postgres:16`.
-- `deploy/hapi/application.yaml` — R4, JSON, permissive CORS, and
-  `hapi.fhir.validation.requests_enabled: true` (validate every write).
-- Data persists in the `hapi-pgdata` volume. `docker compose … down -v` wipes it.
+Then:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d
+# first boot builds the schema (~40s); wait for health, then:
+curl -s http://localhost:8080/fhir/metadata | jq .software      # -> "8.0.0"
+```
+
+- `deploy/docker-compose.yml` — `hapiproject/hapi:v8.0.0`, **embedded H2**
+  persisted to the `hapi-data` volume (`down -v` wipes it).
+- `deploy/hapi/application.yaml` is layered on top of HAPI's bundled config via
+  `SPRING_CONFIG_ADDITIONAL_LOCATION` — it only sets permissive CORS and
+  `hapi.fhir.validation.requests_enabled: true`.
+- **Why H2, not Postgres:** HAPI v8.0.0 bundles a Flyway (community) that rejects
+  Postgres 15 *and* 16 (`Unsupported Database`), and disabling Flyway then trips a
+  bean-init cycle. Not worth fighting for a local dev server — H2 is HAPI's
+  default and works out of the box. The container runs as `root` so it can write
+  the H2 file on the volume.
 
 Point the rest of the stack at it — **no code change**, just config:
 
@@ -60,11 +75,25 @@ cd ig && sushi . --snapshot
 
 ```bash
 docker compose -f deploy/docker-compose.yml up -d
+cd ig && sushi . --snapshot && cd ..
 bash scripts/load-profile.sh                 # PUT the StructureDefinition into HAPI
 ```
 
-Now a `POST /Patient` whose `meta.profile` names the profile is validated;
-a non-conformant one comes back `400` / `422` with an `OperationOutcome`.
+Now a `POST /Patient` whose `meta.profile` names the profile is validated.
+**Verified 2026-09-03** against the local server:
+
+| POST body | Result |
+| :--- | :--- |
+| `patient-conformant.json` | `201 Created` |
+| `patient-no-nid.json` | `422` — *"Patient.identifier: minimum required = 1, but only found 0"* + *"Slice 'nationalId': a matching slice is required"* |
+| `patient-wrong-system.json` | `422` — *"Slice 'nationalId': a matching slice is required"* (the `mrn` identifier doesn't match the discriminator) |
+| `patient-bad-nid.json` | `422` — *"Constraint failed: prohori-nid-digits: 'National ID is 10 to 17 digits.'"* |
+
+The `Prohori.Api` (Phase C) runs against it with **no code change** —
+`Fhir__BaseUrl=http://localhost:8080/fhir dotnet run --project src/Prohori.Api` —
+and `POST /cases` created `Patient/6 · Encounter/3 · Observation/4 · Condition/5`.
+(The API doesn't stamp `meta.profile` yet, so its writes aren't profile-checked —
+that gets wired in in Phase F.)
 
 ### CI-side (the official validator)
 

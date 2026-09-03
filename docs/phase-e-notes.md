@@ -42,7 +42,8 @@ Fhir__BaseUrl=http://localhost:8080/fhir dotnet run --project src/Prohori.Api
 | `name 1..*`, `name.family 1..1` | a name is required |
 | `gender 1..1`, `birthDate 1..1` | required demographics |
 
-Build it (needs Node; no Java, no IG Publisher):
+Build it (needs Node; no Java, no IG Publisher). `ig/fsh-generated/` is
+gitignored — regenerate it before validating or loading the profile:
 
 ```bash
 npm install -g fsh-sushi

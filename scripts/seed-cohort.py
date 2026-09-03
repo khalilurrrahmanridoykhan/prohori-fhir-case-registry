@@ -60,8 +60,9 @@ def entry(fullurl, resource, url):
             "request": {"method": "POST", "url": url}}
 
 
-def build_bundle():
-    entries = []
+def patient_bundles():
+    """One transaction Bundle per patient — smaller bundles are far more reliable
+    against a busy sandbox than one 30-entry bundle."""
     for i, (name, gender, birth, city, district, disease, positive, visit) in enumerate(COHORT, 1):
         # real lowercase UUIDs — a validating server (Phase E's local HAPI) rejects
         # placeholder fullUrls like "urn:uuid:patient-1".
@@ -70,6 +71,7 @@ def build_bundle():
         o = f"urn:uuid:{uuid.uuid4()}"
         family = name.split()[-1]
         given = name.split()[:-1]
+        entries = []
 
         entries.append(entry(p, {
             "resourceType": "Patient",
@@ -125,31 +127,32 @@ def build_bundle():
                 "recordedDate": visit,
             }, "Condition"))
 
-    return {"resourceType": "Bundle", "type": "transaction", "entry": entries}
+        yield name, {"resourceType": "Bundle", "type": "transaction", "entry": entries}
 
 
 def main():
-    bundle = build_bundle()
-    body = json.dumps(bundle).encode()
-    req = urllib.request.Request(
-        BASE, data=body, method="POST",
-        headers={"Content-Type": "application/fhir+json", "Accept": "application/fhir+json"},
-    )
-    print(f"POST {BASE}  (transaction bundle, run id {RUN})")
-    with urllib.request.urlopen(req) as resp:
-        out = json.load(resp)
+    print(f"POST {BASE}  (one transaction per patient, run id {RUN})")
+    totals, failures = {}, 0
+    for name, bundle in patient_bundles():
+        req = urllib.request.Request(
+            BASE, data=json.dumps(bundle).encode(), method="POST",
+            headers={"Content-Type": "application/fhir+json", "Accept": "application/fhir+json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                out = json.load(resp)
+            kinds = [e.get("response", {}).get("location", "?").split("/")[0] for e in out.get("entry", [])]
+            for k in kinds:
+                totals[k] = totals.get(k, 0) + 1
+            print(f"  {name:<18} -> {', '.join(kinds)}")
+        except urllib.error.HTTPError as ex:
+            failures += 1
+            print(f"  {name:<18} -> HTTP {ex.code}: {ex.read().decode()[:120]}")
 
-    created = {}
-    for ent in out.get("entry", []):
-        loc = ent.get("response", {}).get("location", "")
-        rtype = loc.split("/")[0] if loc else "?"
-        created[rtype] = created.get(rtype, 0) + 1
-    print(f"  status {out.get('type')}  ->  " +
-          ", ".join(f"{n} {t}" for t, n in sorted(created.items())))
     print()
-    print("Find your cohort:")
+    print("  created: " + ", ".join(f"{n} {t}" for t, n in sorted(totals.items())) +
+          (f"   ({failures} patient(s) failed)" if failures else ""))
     print(f"  {BASE}/Patient?_tag=urn:prohori|demo-cohort&_sort=-_lastUpdated")
-    print(f"  run id this batch: {RUN}  (National IDs start with it)")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,13 @@
+# Keep host build artefacts out of the image build (they clobber the container restore).
+**/bin
+**/obj
+**/node_modules
+**/dist
+web/
+ig/fsh-generated/
+.bd-core/
+.git/
+.github/
+docs/
+bruno/
+*.md

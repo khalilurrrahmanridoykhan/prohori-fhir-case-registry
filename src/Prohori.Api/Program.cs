@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hl7.Fhir.Rest;
+using Hl7.Fhir.Serialization;
 using MiniValidation;
 using Prohori.Api.Fhir;
 using Prohori.Api.Models;
@@ -52,6 +53,28 @@ app.MapPost("/cases", async (CaseSubmission submission, FhirCaseService cases) =
     }
 })
 .WithSummary("Submit one field case — builds a Patient/Encounter/Observation(/Condition) transaction Bundle and posts it to the FHIR server.");
+
+app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseService cases, bool dryRun = false) =>
+{
+    if (!MiniValidator.TryValidate(submission, out var errors))
+        return Results.ValidationProblem(errors);
+
+    var bundle = BdCoreBundleBuilder.Build(submission);
+
+    if (dryRun)
+        return Results.Text(bundle.ToJson(), "application/fhir+json");
+
+    try
+    {
+        var result = await cases.SubmitAsync(bundle);
+        return Results.Created("/bd-core/cases", result);
+    }
+    catch (CaseRejectedException ex)
+    {
+        return Results.Problem(OperationOutcomeMapper.ToProblemDetails(ex.Outcome, ex.StatusCode));
+    }
+})
+.WithSummary("Submit one field case as a BD-Core-FHIR-IG conformant Bundle (Organization/Practitioner/Patient/Encounter/Observation/Condition). ?dryRun=true returns the Bundle without submitting.");
 
 app.Run();
 

@@ -7,10 +7,12 @@ namespace Prohori.Api.Fhir;
 /// <summary>Builds the case Bundle and submits it to the configured FHIR server as one transaction.</summary>
 public sealed class FhirCaseService(FhirClient client, ILogger<FhirCaseService> logger)
 {
-    public async Task<CaseResult> SubmitAsync(CaseSubmission submission)
-    {
-        var bundle = CaseBundleBuilder.Build(submission);
+    public Task<CaseResult> SubmitAsync(CaseSubmission submission)
+        => SubmitAsync(CaseBundleBuilder.Build(submission));
 
+    /// <summary>Submit a prebuilt transaction Bundle (e.g. the BD-Core variant).</summary>
+    public async Task<CaseResult> SubmitAsync(Bundle bundle)
+    {
         Bundle? response;
         try
         {

@@ -9,8 +9,8 @@ One dated line per non-obvious choice. Newest at the top.
   `hapi.fhir.validation.requests_enabled: true`. Data in a named volume.
 - **Profile authored in FSH** (`ig/input/fsh/ProhoriPatient.fsh`), built with
   **SUSHI** (`FSHOnly: true` — no IG website, just the FHIR artifacts).
-  `fsh-generated/` **is committed** so the profile is usable and validatable
-  without running SUSHI.
+  `fsh-generated/` stays **gitignored** (generated); CI regenerates it in the
+  `IG` job, and `validate-ig.sh` / `load-profile.sh` tell you to run SUSHI first.
 - **ProhoriPatient** requires: a National-ID identifier (sliced by `system`,
   fixed to `http://health.gov.bd/sid`, `value` matches `^[0-9]{10,17}$` via
   invariant), `name` + `name.family`, `gender`, `birthDate`.

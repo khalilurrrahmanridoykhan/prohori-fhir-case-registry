@@ -73,7 +73,7 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
 tests/Prohori.Api.Tests/  xUnit — 19 unit + 2 integration (Category=Integration)
 .github/workflows/     ci.yml — .NET build+tests, dashboard build, IG validate, integration
 web/                   React 19 + Vite + TS dashboard (Phase D)
-ig/                    FHIR Shorthand profile + generated StructureDefinition (Phase E)
+ig/                    FHIR Shorthand profile (Phase E); SUSHI-generated output is gitignored
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
 

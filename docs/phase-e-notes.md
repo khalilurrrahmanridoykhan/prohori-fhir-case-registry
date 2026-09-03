@@ -95,6 +95,14 @@ and `POST /cases` created `Patient/6 · Encounter/3 · Observation/4 · Conditio
 (The API doesn't stamp `meta.profile` yet, so its writes aren't profile-checked —
 that gets wired in in Phase F.)
 
+Also caught here: `seed-cohort.py` used placeholder fullUrls (`urn:uuid:patient-1`)
+that the public sandbox tolerated but a validating server rejects
+(*"UUIDs must be valid and lowercase"*) — fixed to real `uuid.uuid4()`.
+
+![HAPI tester on the local server](screenshots/phase-e-hapi-tester.png)
+![dashboard reading from the local server](screenshots/phase-e-dashboard-local.png)
+![a non-conformant Patient rejected by the profile](screenshots/phase-e-profile-rejection.png)
+
 ### CI-side (the official validator)
 
 ```bash

@@ -1,0 +1,15 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+# New + > Blueprint > connect khalilurrrahmanridoykhan/prohori-fhir-case-registry
+services:
+  - type: web
+    name: prohori-api
+    runtime: docker
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: Fhir__BaseUrl
+        value: https://sandbox.fhir.dghs.gov.bd/fhir

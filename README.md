@@ -54,7 +54,7 @@ flowchart LR
 | **B** | Search — every param type, `_include`/`_revinclude`, `_has`, paging | ✅ complete (`phase-b`) |
 | **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ✅ complete (`phase-c`) |
 | **D** | React dashboard — case list, filters, patient timeline | ✅ complete (`phase-d`) |
-| **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ☐ |
+| **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ✅ complete (`phase-e`) |
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ☐ |
 | **G** | Ship it live — Vercel + Render, seed data, polish | ☐ |
 
@@ -71,10 +71,10 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/                CaseBundleBuilder, FhirCaseService, OperationOutcomeMapper
   Models/              CaseSubmission DTO
 tests/Prohori.Api.Tests/  xUnit — 19 unit + 2 integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, integration (non-blocking)
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG validate, integration
 web/                   React 19 + Vite + TS dashboard (Phase D)
-ig/                    FHIR Shorthand sources + generated IG — from Phase E
-deploy/                Dockerfile, render.yaml, docker-compose (local HAPI)
+ig/                    FHIR Shorthand profile + generated StructureDefinition (Phase E)
+deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
 
 ## Try Phases A & B
@@ -143,6 +143,18 @@ per-patient timeline via `$everything`. See [`web/README.md`](web/README.md).
 | :--- | :--- |
 | ![dashboard](docs/screenshots/dashboard.png) | ![case detail](docs/screenshots/case-detail.png) |
 
+## Run your own server + profile (Phase E)
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d       # HAPI + Postgres
+cd ig && sushi . --snapshot && cd ..                    # build the ProhoriPatient profile
+bash scripts/load-profile.sh                            # push it into the local HAPI
+bash scripts/validate-ig.sh                             # check it against the expectation fixtures
+```
+
+The local server validates every write against the resource's `meta.profile`.
+See [`docs/phase-e-notes.md`](docs/phase-e-notes.md) and [`ig/README.md`](ig/README.md).
+
 ## Development
 
 | Phase | Prereqs |
@@ -150,8 +162,8 @@ per-patient timeline via `$everything`. See [`web/README.md`](web/README.md).
 | A–B | `curl`, `jq`, `python3`, optionally Bruno |
 | C | .NET 8 SDK |
 | D | Node 22+ |
-| E | Docker |
-| E–F | Java 17+ (FHIR validator / IG Publisher), `fsh-sushi` |
+| E | Docker (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
+| F | Java 11+ (`validator_cli.jar`), the BD-Core package |
 
 ## Standards & references
 

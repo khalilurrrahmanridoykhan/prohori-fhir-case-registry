@@ -2,6 +2,32 @@
 
 One dated line per non-obvious choice. Newest at the top.
 
+## 2026-09-02 — Phase C (.NET 8 + Firely write client)
+
+- **Firely `Hl7.Fhir.R4` 6.4.0** (not the 5.x the plan assumed — 6.x is current).
+  `FhirClient` registered as a singleton (wraps `HttpClient`, meant to be reused).
+- **Dropped FluentAssertions** — v8 moved to a paid commercial licence. Using
+  **Shouldly** (free, BSD) instead. On-brand given this project's whole framing is
+  tool governance.
+- **`CaseBundleBuilder` is a pure function** (`CaseSubmission` → `Bundle`), no I/O,
+  so the mapping logic is unit-tested without a server (19 unit tests).
+- **Conditional create** via `Bundle.entry.request.ifNoneExist` on the Patient's
+  National ID — a second visit for the same person reuses the existing Patient
+  instead of duplicating it. Verified by an integration test.
+- **`OperationOutcomeMapper`**: every FHIR error → one RFC 7807 `ProblemDetails`
+  with the raw issues under an `issues` extension. Callers handle one error shape.
+- **Validation**: `MiniValidation` (recurses into the nested `PatientInput`);
+  minimal APIs don't auto-validate DataAnnotations.
+- **Integration tests** tagged `[Trait("Category", "Integration")]`; CI gate runs
+  `--filter "Category!=Integration"`, a separate non-blocking job runs them against
+  hapi.fhir.org (sandbox flakiness shouldn't fail the gate).
+- HAPI-2840 again: two identical Encounters in back-to-back submissions are
+  rejected, so the "no duplicate patient" test submits the second visit on a
+  different date — which is realistic anyway.
+- `.NET 8` via Homebrew `dotnet@8` (keg-only): needs
+  `export DOTNET_ROOT="/opt/homebrew/opt/dotnet@8/libexec"` +
+  `PATH="/opt/homebrew/opt/dotnet@8/bin:$PATH"`.
+
 ## 2026-09-02 — Phase B (Search)
 
 - **Seed with a transaction Bundle** (`scripts/seed-cohort.py`, stdlib only): one

@@ -8,6 +8,10 @@ obj/
 [Rr]elease/
 artifacts/
 *.nupkg
+TestResults/
+*.trx
+*.coverage
+
 
 # --- Node / Vite (web/) ---
 node_modules/

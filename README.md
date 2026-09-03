@@ -50,7 +50,7 @@ flowchart LR
 | :--- | :--- | :--- |
 | **A** | FHIR REST API by hand (Bruno + curl); repo bootstrap | ✅ complete (`phase-a`) |
 | **B** | Search — every param type, `_include`/`_revinclude`, `_has`, paging | ✅ complete (`phase-b`) |
-| **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ☐ |
+| **C** | .NET 8 + Firely write client — transaction Bundle, conditional create | ✅ complete (`phase-c`) |
 | **D** | React dashboard — case list, filters, patient timeline | ☐ |
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ☐ |
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ☐ |
@@ -61,15 +61,18 @@ Full plan: `~/Documents/AIWORK/plan/Prohori — FHIR Field Case Registry (.NET +
 ## Repository layout
 
 ```
-bruno/         Bruno API collection — root = Phase A CRUD, search/ = Phase B
-scripts/       phase-a.sh, seed-cohort.py, phase-b.sh — curl / Python equivalents
-fixtures/      sample FHIR resources
-docs/          phase notes, search-query catalogue, architecture, screenshots
-src/           Prohori.Api (.NET 8) — from Phase C
-tests/         xUnit — from Phase C
-web/           React + Vite dashboard — from Phase D
-ig/            FHIR Shorthand sources + generated IG — from Phase E
-deploy/        Dockerfile, render.yaml, docker-compose (local HAPI)
+bruno/                 Bruno API collection — root = Phase A CRUD, search/ = Phase B
+scripts/               phase-a.sh, seed-cohort.py, phase-b.sh — curl / Python equivalents
+fixtures/              sample FHIR resources
+docs/                  phase notes, search-query catalogue, architecture, screenshots
+src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a transaction Bundle
+  Fhir/                CaseBundleBuilder, FhirCaseService, OperationOutcomeMapper
+  Models/              CaseSubmission DTO
+tests/Prohori.Api.Tests/  xUnit — 19 unit + 2 integration (Category=Integration)
+.github/workflows/     ci.yml — build + unit tests; integration job (non-blocking)
+web/                   React + Vite dashboard — from Phase D
+ig/                    FHIR Shorthand sources + generated IG — from Phase E
+deploy/                Dockerfile, render.yaml, docker-compose (local HAPI)
 ```
 
 ## Try Phases A & B
@@ -95,11 +98,35 @@ paging, and `$everything` ([`docs/search-queries.md`](docs/search-queries.md)).
 To click through it interactively: install [Bruno](https://www.usebruno.com)
 (`brew install --cask bruno`) and open the `bruno/` folder.
 
+## Run the API (Phase C)
+
+Needs the **.NET 8 SDK**.
+
+```bash
+dotnet run --project src/Prohori.Api        # -> http://localhost:5279, Swagger at /swagger
+dotnet test                                  # 19 unit + 2 integration tests
+dotnet test --filter "Category!=Integration" # unit only (the CI gate)
+```
+
+Submit a case:
+
+```bash
+curl -X POST localhost:5279/cases -H 'Content-Type: application/json' -d '{
+  "patient": { "nationalId": "19942691012345678", "familyName": "Khan",
+    "givenNames": ["Rahman"], "gender": "male", "birthDate": "1995-06-15",
+    "city": "Dhaka", "district": "Dhaka" },
+  "disease": "dengue", "rdtResult": "positive", "visitDate": "2026-08-14T09:20:00+06:00"
+}'
+# 201 { "created": ["Patient/…", "Encounter/…", "Observation/…", "Condition/…"] }
+```
+
+Point it at another server: `Fhir__BaseUrl=http://localhost:8080/fhir dotnet run --project src/Prohori.Api`.
+
 ## Development
 
 | Phase | Prereqs |
 | :--- | :--- |
-| A–B | `curl`, `jq`, optionally Bruno |
+| A–B | `curl`, `jq`, `python3`, optionally Bruno |
 | C | .NET 8 SDK |
 | D | Node 22+ |
 | E | Docker |

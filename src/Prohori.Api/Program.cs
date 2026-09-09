@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hl7.Fhir.Rest;
@@ -24,10 +25,24 @@ builder.Services.AddSingleton(_ => new FhirClient(fhirBaseUrl, new FhirClientSet
 }));
 builder.Services.AddScoped<FhirCaseService>();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.Authority = builder.Configuration["Auth:Authority"] ?? "http://localhost:8081/realms/prohori";
+    options.Audience = "prohori-api";
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+    options.MapInboundClaims = false;
+});
+builder.Services.AddAuthorization(options => options.AddPolicy("CaseWrite", policy =>
+    policy.RequireAuthenticatedUser().RequireAssertion(context => context.User.FindAll("scope")
+        .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        .Contains("user/*.write", StringComparer.Ordinal))));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -52,6 +67,7 @@ app.MapPost("/cases", async (CaseSubmission submission, FhirCaseService cases) =
         return Results.Problem(OperationOutcomeMapper.ToProblemDetails(ex.Outcome, ex.StatusCode));
     }
 })
+.RequireAuthorization("CaseWrite")
 .WithSummary("Submit one field case — builds a Patient/Encounter/Observation(/Condition) transaction Bundle and posts it to the FHIR server.");
 
 app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseService cases, bool dryRun = false) =>
@@ -74,6 +90,7 @@ app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseSe
         return Results.Problem(OperationOutcomeMapper.ToProblemDetails(ex.Outcome, ex.StatusCode));
     }
 })
+.RequireAuthorization("CaseWrite")
 .WithSummary("Submit one field case as a BD-Core-FHIR-IG conformant Bundle (Organization/Practitioner/Patient/Encounter/Observation/Condition). ?dryRun=true returns the Bundle without submitting.");
 
 app.Run();

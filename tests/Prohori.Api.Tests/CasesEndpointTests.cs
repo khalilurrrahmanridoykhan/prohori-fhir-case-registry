@@ -9,10 +9,10 @@ namespace Prohori.Api.Tests;
 /// validation only — they never reach a FHIR server (that is covered by the
 /// Integration tests).
 /// </summary>
-public class CasesEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class CasesEndpointTests(AuthenticatedFactory factory)
+    : IClassFixture<AuthenticatedFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.Authorized();
 
     [Fact]
     public async Task Health_reports_ok_and_the_target_server()

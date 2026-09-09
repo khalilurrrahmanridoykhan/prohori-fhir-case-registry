@@ -1,5 +1,28 @@
 # Decisions
 
+## 2026-09-09 — Phase H
+
+- Use fhirclient for SMART authorization-code + S256 PKCE, state and token
+  exchange. Resolve and read the launch patient before mounting React. Keep the
+  public synthetic cohort demo available when no SMART session exists.
+- Require issuer/JWKS signature, audience and lifetime validation for case
+  writes. Match `user/*.write` as a whole scope, protect BD-Core writes too,
+  and generate CI validation artifacts offline instead of bypassing auth.
+- Keycloak 26.6 provides the local IdP; it is not a SMART server. An explicitly
+  enabled context/read facade uses the signed patient claim for the fixed
+  synthetic demo. Do not advertise unsupported SMART server capabilities.
+- Use a scoped Firely client to avoid sharing mutable SDK request state across
+  concurrent requests. Patient PATCH/PUT transport forwards conditional writes
+  atomically to HAPI and requires an explicit ETag.
+- Translate only HAPI's specific stale PATCH error (`409`, `HAPI-0974`) to
+  `412`; derive omitted PATCH ETags from versioned Content-Location. Live tests
+  discovered both HAPI behaviors. Preserve unrelated upstream conflicts.
+- Synchronous Patient writes may ignore respond-async. Real async jobs remain
+  in Phase I; do not manufacture successful 202/polling flows.
+- The H–P plan supersedes the old squash-merge note: retain granular commits,
+  merge the phase PR with a merge commit, then tag `phase-h`.
+
+
 One dated line per non-obvious choice. Newest at the top.
 
 ## 2026-09-03 — Phase G (ship it live)

@@ -51,3 +51,6 @@ bruno/.env
 
 web/test-results/
 web/playwright-report/
+
+# Backend-service keys, generated Keycloak realm and synthetic export state
+.bulk/

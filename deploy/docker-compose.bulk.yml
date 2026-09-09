@@ -1,0 +1,26 @@
+# Isolated synthetic Bulk Data lab; keeps the Phase H realm and data intact.
+name: prohori-bulk
+services:
+  hapi:
+    image: hapiproject/hapi:v8.0.0
+    user: root
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:///app/config/application.yaml
+      spring.datasource.url: jdbc:h2:file:/data/h2;DB_CLOSE_DELAY=-1
+      hapi.fhir.bulk_export_enabled: "true"
+      hapi.fhir.binary_storage_enabled: "true"
+    volumes:
+      - ./hapi/application.yaml:/app/config/application.yaml:ro
+      - bulk-hapi-data:/data
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.0
+    command: start-dev --import-realm
+    ports:
+      - "127.0.0.1:8091:8080"
+    volumes:
+      - ../.bulk/prohori-bulk-realm.json:/opt/keycloak/data/import/prohori-bulk-realm.json:ro
+    # Disposable realm is regenerated from the local public JWKS; no admin account.
+volumes:
+  bulk-hapi-data:

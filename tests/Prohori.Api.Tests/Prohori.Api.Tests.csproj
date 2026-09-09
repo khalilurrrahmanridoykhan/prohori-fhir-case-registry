@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Prohori.Api\Prohori.Api.csproj" />
+    <ProjectReference Include="..\..\src\Prohori.BulkClient\Prohori.BulkClient.csproj" />
   </ItemGroup>
 
 </Project>

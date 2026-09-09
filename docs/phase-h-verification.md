@@ -4,7 +4,7 @@
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| .NET build and unit/API tests | 42 passed, 0 failed | `dotnet test --filter 'Category!=Integration'` |
+| .NET build and unit/API tests | 43 passed, 0 failed | `dotnet test --filter 'Category!=Integration'` |
 | Browser regressions + live local flow | 4 passed | `PROHORI_LIVE_SMART=1 npm test -- --workers=1` under `web/` |
 | Production web build | Passed | `npm run build` |
 | BD-Core validation after offline export change | 0 errors, 9 warnings, 8 notes | `bash scripts/bd-core.sh` |

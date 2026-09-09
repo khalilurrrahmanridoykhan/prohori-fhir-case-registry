@@ -41,7 +41,8 @@ builder.Services.AddHttpClient("fhir", client => client.BaseAddress = new Uri(fh
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    options.Authority = builder.Configuration["Auth:Authority"] ?? "http://localhost:8081/realms/prohori";
+    options.Authority = builder.Configuration["Auth:Authority"] ?? (builder.Environment.IsDevelopment()
+        ? "http://localhost:8081/realms/prohori" : "https://localhost:8443/realms/prohori");
     options.Audience = "prohori-api";
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.MapInboundClaims = false;

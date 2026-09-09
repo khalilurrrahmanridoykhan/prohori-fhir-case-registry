@@ -33,9 +33,9 @@ public static partial class PatientWriteEndpoints
                 if (contentType == "application/fhir+json")
                 {
                     var expected = request.Method == "PATCH" ? "Parameters" : "Patient";
-                    if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("resourceType", out var type) || type.GetString() != expected)
+                    if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("resourceType", out var type) || type.ValueKind != JsonValueKind.String || type.GetString() != expected)
                         return Results.BadRequest(new { error = $"Expected {expected}." });
-                    if (request.Method == "PUT" && (!root.TryGetProperty("id", out var bodyId) || bodyId.GetString() != id))
+                    if (request.Method == "PUT" && (!root.TryGetProperty("id", out var bodyId) || bodyId.ValueKind != JsonValueKind.String || bodyId.GetString() != id))
                         return Results.BadRequest(new { error = "Patient id must match the URL." });
                 }
                 else if (root.ValueKind != JsonValueKind.Array) return Results.BadRequest(new { error = "JSON Patch must be an array." });

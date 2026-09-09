@@ -76,7 +76,7 @@ not expose this Docker setup as a production protected FHIR server.
 `Prohori.Api` uses `AddJwtBearer`: OIDC discovery supplies the issuer's JWKS;
 the middleware validates signature, issuer, audience and lifetime. Production
 requires HTTPS metadata; Development permits the loopback HTTP issuer. Set
-`Auth__Authority` to the deployment's HTTPS Keycloak realm. No validation
+`Auth__Authority` to the deployment's HTTPS Keycloak realm (also exposed in the Render blueprint). Without it, production defaults to an unavailable loopback HTTPS issuer: health and anonymous 401 responses work, but authenticated writes remain unavailable. No validation
 bypass, fixed bearer token, or browser client secret exists in application code.
 
 An access token authorizes API calls. An OIDC ID token describes the signed-in

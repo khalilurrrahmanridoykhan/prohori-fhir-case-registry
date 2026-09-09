@@ -1,8 +1,17 @@
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
 using System.Net.Http.Json;
 namespace Prohori.Api.Tests;
 public class AuthorizationTests(AuthenticatedFactory factory) : IClassFixture<AuthenticatedFactory>
 {
+    [Fact]
+    public async Task Production_without_configured_identity_provider_still_serves_health_and_refuses_writes()
+    {
+        using var host = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production"));
+        using var client = host.CreateClient();
+        (await client.GetAsync("/health")).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await client.PostAsJsonAsync("/cases", Sample.Case())).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
     [Theory]
     [InlineData("/cases")]
     [InlineData("/bd-core/cases")]

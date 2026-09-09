@@ -12,7 +12,7 @@ resources = [
      'class': {'system': 'http://terminology.hl7.org/CodeSystem/v3-ActCode', 'code': 'AMB'},
      'subject': {'reference': 'Patient/prohori-smart-demo'}, 'period': {'start': '2026-09-09T09:00:00+06:00'}},
     {'resourceType': 'Observation', 'id': 'prohori-smart-rdt', 'status': 'final',
-     'code': {'coding': [{'system': 'http://loinc.org', 'code': '70895-3', 'display': 'Dengue virus NS1 Ag'}]},
+     'code': {'coding': [{'system': 'http://loinc.org', 'code': '42239-4', 'display': 'Dengue virus NS1 Ag'}]},
      'subject': {'reference': 'Patient/prohori-smart-demo'}, 'encounter': {'reference': 'Encounter/prohori-smart-visit'},
      'effectiveDateTime': '2026-09-09T09:00:00+06:00',
      'valueCodeableConcept': {'coding': [{'system': 'http://snomed.info/sct', 'code': '10828004', 'display': 'Positive'}]}},

@@ -48,3 +48,6 @@ Thumbs.db
 # --- Bruno ---
 bruno/.env
 .bd-core/
+
+web/test-results/
+web/playwright-report/

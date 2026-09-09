@@ -53,6 +53,16 @@ flowchart LR
 | `ig/` — `ProhoriPatient` profile | FHIR Shorthand + SUSHI | in-repo, validated in CI |
 | `deploy/` — local HAPI | `hapiproject/hapi` + Docker Compose | your machine (Phase E) |
 
+## SMART launch and security (Phase H)
+
+Launch the dashboard with SMART patient context and S256 PKCE, or run the local
+Keycloak demo. API case writes now require a Keycloak access token with
+`user/*.write`; existing unauthenticated POST examples require that header.
+Patient PATCH/PUT supports `If-Match` and stale-write `412` responses.
+
+[Launch setup and token model](docs/smart-launch.md) ·
+[Verification evidence](docs/phase-h-verification.md)
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -64,6 +74,7 @@ flowchart LR
 | **E** | Self-hosted HAPI (Docker) + a `ProhoriPatient` profile, validation on | ✅ complete (`phase-e`) |
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ✅ complete (`phase-f`) |
 | **G** | Ship it live — Vercel + Render, seed data, polish | ✅ config ready (`phase-g`) — see [Deploy](#deploy-phase-g) |
+| **H** | SMART launch, Keycloak, protected writes, PATCH / If-Match | Implemented and verified ([Inferno caveat](docs/phase-h-verification.md)) |
 
 ## Repository layout
 
@@ -229,3 +240,12 @@ decisions live in [`DECISIONS.md`](DECISIONS.md) and `docs/phase-*-notes.md`.
 [Apache-2.0](LICENSE) © 2026 Khalilur Rahman Ridoy Khan
 
 > Synthetic data only. Not a medical device. Not for use with real patient data.
+
+## Reproduce and interpret the demo
+
+Run `make verify` for the API tests, production web build and browser regression
+tests (requires .NET 8 and Node 22+). For live local checks, follow the
+[SMART setup](docs/smart-launch.md).
+
+[Data dictionary](DATA_DICTIONARY.md) · [Data provenance](DATA_PROVENANCE.md) ·
+[Ethics and privacy](ETHICS.md) · [Citation](CITATION.cff)

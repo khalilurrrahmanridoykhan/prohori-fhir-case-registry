@@ -13,6 +13,8 @@ put {
 headers {
   Content-Type: application/fhir+json
   Accept: application/fhir+json
+  If-Match: W/"{{patientVersion}}"
+  Prefer: return=representation
 }
 
 body:json {

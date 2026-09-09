@@ -22,3 +22,7 @@ docs {
   - `meta.versionId` in the body must match the `ETag`.
   - A `404` here means the id never existed; a `410 Gone` means it was deleted.
 }
+
+script:post-response {
+  bru.setVar("patientVersion", res.body.meta.versionId);
+}

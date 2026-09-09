@@ -13,3 +13,7 @@ services:
     envVars:
       - key: Fhir__BaseUrl
         value: https://sandbox.fhir.dghs.gov.bd/fhir
+      - key: Auth__Authority
+        sync: false # HTTPS Keycloak realm URL; required for authenticated production writes
+      - key: Smart__WebOrigin
+        value: https://prohori-fhir-case-registry.vercel.app

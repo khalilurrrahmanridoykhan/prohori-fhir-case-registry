@@ -31,15 +31,10 @@ REQUEST='{
   "practitionerCode": "CHW-2201"
 }'
 
-echo "▸ building the Bundle (Prohori.Api dry-run)…"
-dotnet run --project "$DIR/src/Prohori.Api" --no-launch-profile --urls "http://localhost:$PORT" \
-  > "$OUT/api.log" 2>&1 &
-API=$!
-trap 'kill $API 2>/dev/null || true' EXIT
-for _ in $(seq 1 30); do curl -sf -o /dev/null "http://localhost:$PORT/health" && break; sleep 1; done
-curl -sf -X POST "http://localhost:$PORT/bd-core/cases?dryRun=true" \
-  -H 'Content-Type: application/json' -d "$REQUEST" -o "$OUT/bundle.json"
-kill $API 2>/dev/null || true; trap - EXIT
+echo "▸ building the Bundle (offline)…"
+printf '%s' "$REQUEST" > "$OUT/request.json"
+dotnet run --project "$DIR/src/Prohori.Api" --no-launch-profile -- \
+  --export-bd-core "$OUT/request.json" "$OUT/bundle.json"
 echo "  -> $OUT/bundle.json ($(jq -r '[.entry[].resource.resourceType] | join(", ")' "$OUT/bundle.json"))"
 
 echo "▸ validating against bd.fhir.core…"

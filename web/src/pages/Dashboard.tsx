@@ -41,9 +41,7 @@ export function Dashboard() {
 
       {cases && cases.length === 0 && (
         <div className="state">
-          No cases on this server yet. Seed some:
-          <br />
-          <code>python3 scripts/seed-cohort.py</code> &nbsp;or&nbsp; <code>POST /cases</code> via the API.
+          No visits are available for this view.
         </div>
       )}
 

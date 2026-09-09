@@ -48,6 +48,7 @@ jq --arg pid "$PID" '.id=$pid | .address[0].city="Narayanganj" | .address[0].dis
   "$TMP/create.json" > "$TMP/update.json"
 curl -sS -D "$TMP/h04" -X PUT "$BASE/Patient/$PID" \
   -H 'Content-Type: application/fhir+json' -H 'Accept: application/fhir+json' \
+  -H "If-Match: W/\"$(jq -r .meta.versionId "$TMP/read.json")\"" \
   --data-binary @"$TMP/update.json" -o "$TMP/updated.json"
 grep -iE '^HTTP|^etag:' "$TMP/h04" | tr -d '\r'
 jq '{versionId: .meta.versionId, city: .address[0].city}' "$TMP/updated.json"

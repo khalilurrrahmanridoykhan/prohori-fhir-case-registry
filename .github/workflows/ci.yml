@@ -51,6 +51,8 @@ jobs:
       - run: npm ci
       - run: npx tsc -b
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
 
   ig:
     name: IG — build profile + validate

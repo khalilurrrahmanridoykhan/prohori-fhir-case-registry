@@ -12,6 +12,14 @@
 name: prohori
 
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.0
+    command: start-dev --import-realm
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./keycloak/prohori-realm.json:/opt/keycloak/data/import/prohori-realm.json:ro
+      - keycloak-data:/opt/keycloak/data
   hapi:
     image: hapiproject/hapi:v8.0.0
     # so the container can write the H2 file on the named volume
@@ -35,4 +43,5 @@ configs:
     file: ./hapi/application.yaml
 
 volumes:
+  keycloak-data:
   hapi-data:

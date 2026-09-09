@@ -6,6 +6,7 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { CaseDetail } from "./pages/CaseDetail";
 import "./styles.css";
+import { initializeSmart } from "./smart";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +14,8 @@ const queryClient = new QueryClient({
   },
 });
 
+async function start() {
+await initializeSmart();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -27,3 +30,6 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+}
+start().catch((error: Error) => { document.getElementById("root")!.textContent = `SMART launch failed: ${error.message}`; });

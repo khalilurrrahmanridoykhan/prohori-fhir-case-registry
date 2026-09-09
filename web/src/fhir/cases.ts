@@ -1,3 +1,4 @@
+import { smartClient } from "../smart";
 import { useQuery } from "@tanstack/react-query";
 import { COHORT_TAG } from "../config";
 import { bundleResources, fhirGet, fhirSearch, referenceId } from "./client";
@@ -48,10 +49,10 @@ function groupBy<T>(items: T[], key: (item: T) => string | undefined): Map<strin
  */
 export function useCases() {
   return useQuery({
-    queryKey: ["cases"],
+    queryKey: ["cases", smartClient?.state.serverUrl, smartClient?.patient.id],
     queryFn: async (): Promise<CaseRow[]> => {
       const bundle = await fhirSearch("/Encounter", {
-        _tag: COHORT_TAG,
+        ...(smartClient ? { patient: smartClient.patient.id! } : { _tag: COHORT_TAG }),
         _include: "Encounter:subject",
         _revinclude: ["Observation:encounter", "Condition:encounter"],
         _sort: "-date",
@@ -112,6 +113,7 @@ export function useCaseTimeline(patientId: string | undefined) {
     queryKey: ["timeline", patientId],
     enabled: Boolean(patientId),
     queryFn: async () => {
+      if (smartClient && patientId !== smartClient.patient.id) throw new Error("Patient is outside the launch context.");
       const bundle = await fhirGet(`/Patient/${patientId}/$everything?_count=200`);
       const resources = bundleResources(bundle);
       const patient = resources.find((r): r is Patient => r.resourceType === "Patient");

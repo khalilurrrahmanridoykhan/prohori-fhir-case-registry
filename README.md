@@ -240,3 +240,12 @@ decisions live in [`DECISIONS.md`](DECISIONS.md) and `docs/phase-*-notes.md`.
 [Apache-2.0](LICENSE) © 2026 Khalilur Rahman Ridoy Khan
 
 > Synthetic data only. Not a medical device. Not for use with real patient data.
+
+## Reproduce and interpret the demo
+
+Run `make verify` for the API tests, production web build and browser regression
+tests (requires .NET 8 and Node 22+). For live local checks, follow the
+[SMART setup](docs/smart-launch.md).
+
+[Data dictionary](DATA_DICTIONARY.md) · [Data provenance](DATA_PROVENANCE.md) ·
+[Ethics and privacy](ETHICS.md) · [Citation](CITATION.cff)

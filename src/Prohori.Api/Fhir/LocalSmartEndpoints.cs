@@ -23,6 +23,11 @@ public static class LocalSmartEndpoints
         app.MapGet("/smart/context", (ClaimsPrincipal user) =>
             Results.Ok(new { patient = user.FindFirstValue("patient"), fhirUser = user.FindFirstValue("fhirUser") }))
             .RequireAuthorization("PatientRead");
+        app.MapGet("/fhir/Patient/{id}", async (string id, ClaimsPrincipal user, IHttpClientFactory clients, CancellationToken cancellation) =>
+        {
+            if (id != user.FindFirstValue("patient")) return Results.Forbid();
+            return await Read(clients, $"Patient/{Uri.EscapeDataString(id)}", cancellation);
+        }).RequireAuthorization("PatientRead");
         app.MapGet("/fhir/Encounter", async (ClaimsPrincipal user, IHttpClientFactory clients, CancellationToken cancellation) =>
             await Read(clients, $"Encounter?patient={Uri.EscapeDataString(user.FindFirstValue("patient")!)}&_include=Encounter:subject&_revinclude=Observation:encounter&_revinclude=Condition:encounter&_sort=-date&_count=300", cancellation))
             .RequireAuthorization("PatientRead");

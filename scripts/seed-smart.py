@@ -18,7 +18,7 @@ resources = [
      'valueCodeableConcept': {'coding': [{'system': 'http://snomed.info/sct', 'code': '10828004', 'display': 'Positive'}]}},
 ]
 bundle = {'resourceType': 'Bundle', 'type': 'transaction', 'entry': [
-    {'resource': resource, 'request': {'method': 'PUT', 'url': resource['resourceType'] + '/' + resource['id']}}
+    {'fullUrl': base + '/' + resource['resourceType'] + '/' + resource['id'], 'resource': resource, 'request': {'method': 'PUT', 'url': resource['resourceType'] + '/' + resource['id']}}
     for resource in resources]}
 request = urllib.request.Request(base, data=json.dumps(bundle).encode(), headers={'Content-Type': 'application/fhir+json'})
 with urllib.request.urlopen(request, timeout=90) as response:

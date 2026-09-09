@@ -50,9 +50,21 @@ public static partial class PatientWriteEndpoints
                 {
                     using var result = await clients.CreateClient("fhir").SendAsync(upstream, cancellation);
                     foreach (var name in new[] { "ETag", "Last-Modified", "Preference-Applied" })
-                        if (result.Headers.TryGetValues(name, out var values)) response.Headers[name] = values.ToArray();
-                    return Results.Text(await result.Content.ReadAsStringAsync(cancellation),
-                        result.Content.Headers.ContentType?.ToString() ?? "application/fhir+json", statusCode: (int)result.StatusCode);
+                        if (result.Headers.TryGetValues(name, out var values) || result.Content.Headers.TryGetValues(name, out values)) response.Headers[name] = values.ToArray();
+                    var responseBody = await result.Content.ReadAsStringAsync(cancellation);
+                    if (result.IsSuccessStatusCode && !response.Headers.ContainsKey("ETag"))
+                    {
+                        // HAPI PATCH returns Content-Location rather than ETag.
+                        var location = result.Content.Headers.ContentLocation?.ToString();
+                        var version = location?.Split("/_history/").Last();
+                        if (location?.Contains("/_history/", StringComparison.Ordinal) == true && version != null && FhirId().IsMatch(version))
+                            response.Headers.ETag = $"W/\"{version}\"";
+                    }
+                    var status = (int)result.StatusCode;
+                    // HAPI 8 uses 409/HAPI-0974 for stale PATCH versions; expose HTTP precondition semantics.
+                    if (status == 409 && responseBody.Contains("HAPI-0974:", StringComparison.Ordinal)) status = 412;
+                    return Results.Text(responseBody,
+                        result.Content.Headers.ContentType?.ToString() ?? "application/fhir+json", statusCode: status);
                 }
                 catch (HttpRequestException) { return Results.Problem(statusCode: 502, detail: "FHIR server unavailable."); }
             }

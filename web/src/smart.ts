@@ -14,6 +14,7 @@ export async function initializeSmart() {
       smartClient.state.tokenResponse = { ...smartClient.state.tokenResponse, patient: context.patient };
     }
     if (!smartClient.patient.id) throw new Error('Launch did not provide patient context. Relaunch with launch/patient.');
+    await smartClient.patient.read();
     sessionStorage.setItem('prohori-smart', '1');
     history.replaceState(null, '', location.pathname);
   }

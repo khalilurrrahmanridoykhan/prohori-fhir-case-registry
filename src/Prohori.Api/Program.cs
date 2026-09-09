@@ -29,7 +29,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // FHIR server: config key "Fhir:BaseUrl" or env var Fhir__BaseUrl; defaults to the public HAPI sandbox.
 var fhirBaseUrl = builder.Configuration["Fhir:BaseUrl"] ?? "https://hapi.fhir.org/baseR4";
 
-builder.Services.AddSingleton(_ => new FhirClient(fhirBaseUrl, new FhirClientSettings
+builder.Services.AddScoped(_ => new FhirClient(fhirBaseUrl, new FhirClientSettings
 {
     PreferredFormat = ResourceFormat.Json,
     VerifyFhirVersion = false,

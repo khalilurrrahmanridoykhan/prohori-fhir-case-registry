@@ -24,6 +24,7 @@ for (const ehr of [false, true]) {
         expect(createHash('sha256').update(body.get('code_verifier')!).digest('base64url')).toBe(challenge);
         return route.fulfill({ json: { access_token: 'synthetic-test-token', token_type: 'Bearer', patient: 'patient-one', scope: 'patient/*.rs', expires_in: 300 } });
       }
+      if (url.pathname === '/fhir/Patient/patient-one') return route.fulfill({ json: { resourceType: 'Patient', id: 'patient-one' } });
       if (url.pathname === '/fhir/Encounter') {
         expect(url.searchParams.get('patient')).toBe('patient-one');
         expect(url.searchParams.has('_tag')).toBe(false);

@@ -21,6 +21,7 @@ public class PatientWriteTests(AuthenticatedFactory factory) : IClassFixture<Aut
     [Theory]
     [InlineData(200)]
     [InlineData(412)]
+    [InlineData(409)]
     public async Task Patch_forwards_version_and_preserves_upstream_status(int status)
     {
         var handler = new CaptureHandler(status);
@@ -32,7 +33,7 @@ public class PatientWriteTests(AuthenticatedFactory factory) : IClassFixture<Aut
         { Content = new StringContent(Patch, Encoding.UTF8, "application/fhir+json") };
         request.Headers.TryAddWithoutValidation("If-Match", "W/\"1\"");
         var response = await client.SendAsync(request);
-        ((int)response.StatusCode).ShouldBe(status);
+        ((int)response.StatusCode).ShouldBe(status == 409 ? 412 : status);
         handler.Version.ShouldBe("W/\"1\"");
         handler.Path.ShouldBe("/baseR4/Patient/demo");
         handler.Body.ShouldBe(Patch);
@@ -45,7 +46,7 @@ public class PatientWriteTests(AuthenticatedFactory factory) : IClassFixture<Aut
             Version = request.Headers.GetValues("If-Match").Single();
             Path = request.RequestUri.AbsolutePath;
             Body = await request.Content.ReadAsStringAsync(cancellationToken);
-            return new HttpResponseMessage((HttpStatusCode)status) { Content = new StringContent("{}", Encoding.UTF8, "application/fhir+json") };
+            return new HttpResponseMessage((HttpStatusCode)status) { Content = new StringContent(status == 409 ? "{\"resourceType\":\"OperationOutcome\",\"issue\":[{\"diagnostics\":\"HAPI-0974: stale version\"}]}" : "{}", Encoding.UTF8, "application/fhir+json") };
         }
     }
 }

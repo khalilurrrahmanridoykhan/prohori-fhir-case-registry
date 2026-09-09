@@ -18,9 +18,7 @@
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
-      "defaultClientScopes": [
-        "profile"
-      ],
+      "defaultClientScopes": [],
       "optionalClientScopes": [
         "user/*.write",
         "patient/*.rs",
@@ -122,7 +120,11 @@
           "value": "synthetic-demo-only",
           "temporary": false
         }
-      ]
+      ],
+      "firstName": "Synthetic",
+      "lastName": "Demo",
+      "email": "demo@example.invalid",
+      "emailVerified": true
     }
   ]
 }

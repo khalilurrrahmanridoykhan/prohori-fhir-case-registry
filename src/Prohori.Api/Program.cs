@@ -7,6 +7,18 @@ using MiniValidation;
 using Prohori.Api.Fhir;
 using Prohori.Api.Models;
 
+// Offline artifact generation keeps CI independent of an identity provider.
+if (args.Length == 3 && args[0] == "--export-bd-core")
+{
+    var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    var submission = JsonSerializer.Deserialize<BdCoreCaseSubmission>(File.ReadAllText(args[1]), options)
+        ?? throw new ArgumentException("Missing submission.");
+    if (!MiniValidator.TryValidate(submission, out _)) throw new ArgumentException("Invalid submission.");
+    File.WriteAllText(args[2], BdCoreBundleBuilder.Build(submission).ToJson());
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -24,6 +36,8 @@ builder.Services.AddSingleton(_ => new FhirClient(fhirBaseUrl, new FhirClientSet
     PreferredParameterHandling = SearchParameterHandling.Lenient,
 }));
 builder.Services.AddScoped<FhirCaseService>();
+builder.Services.AddHttpClient("fhir", client => client.BaseAddress = new Uri(fhirBaseUrl.TrimEnd('/') + "/"))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -32,15 +46,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.MapInboundClaims = false;
 });
-builder.Services.AddAuthorization(options => options.AddPolicy("CaseWrite", policy =>
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("PatientRead", policy => policy.RequireAuthenticatedUser().RequireClaim("patient")
+        .RequireAssertion(context => context.User.FindAll("scope").SelectMany(c => c.Value.Split(' ')).Contains("patient/*.rs")));
+    options.AddPolicy("CaseWrite", policy =>
     policy.RequireAuthenticatedUser().RequireAssertion(context => context.User.FindAll("scope")
         .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-        .Contains("user/*.write", StringComparer.Ordinal))));
+        .Contains("user/*.write", StringComparer.Ordinal)));
+});
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .WithOrigins(builder.Configuration["Smart:WebOrigin"] ?? "http://localhost:5173")
+    .AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("ETag", "Preference-Applied")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -92,6 +115,9 @@ app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseSe
 })
 .RequireAuthorization("CaseWrite")
 .WithSummary("Submit one field case as a BD-Core-FHIR-IG conformant Bundle (Organization/Practitioner/Patient/Encounter/Observation/Condition). ?dryRun=true returns the Bundle without submitting.");
+
+app.MapPatientWrites();
+app.MapLocalSmart();
 
 app.Run();
 

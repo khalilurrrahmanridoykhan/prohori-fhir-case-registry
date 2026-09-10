@@ -63,6 +63,14 @@ Patient PATCH/PUT supports `If-Match` and stale-write `412` responses.
 [Launch setup and token model](docs/smart-launch.md) ·
 [Verification evidence](docs/phase-h-verification.md)
 
+## Backend Services and Bulk Data (Phase I)
+
+Run `bash scripts/verify-bulk.sh` to authenticate with an RS384 backend assertion,
+export a synthetic cohort from local HAPI, and verify an incremental pull.
+The .NET client produces NDJSON, a reusable snapshot and case/positivity JSON by
+Bangladesh division. [Setup, async flow and limitations](docs/bulk-export.md).
+Bulk export is an isolated local/CI lab; it is disabled on the deployed API.
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -75,6 +83,7 @@ Patient PATCH/PUT supports `If-Match` and stale-write `412` responses.
 | **F** | BD-Core-FHIR-IG conformance + live submission to the DGHS sandbox | ✅ complete (`phase-f`) |
 | **G** | Ship it live — Vercel + Render, seed data, polish | ✅ config ready (`phase-g`) — see [Deploy](#deploy-phase-g) |
 | **H** | SMART launch, Keycloak, protected writes, PATCH / If-Match | Implemented and verified ([Inferno caveat](docs/phase-h-verification.md)) |
+| **I** | Backend Services, real Bulk Data export, incremental aggregates | Implemented — [guide and verification](docs/bulk-export.md) |
 
 ## Repository layout
 
@@ -89,6 +98,7 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/BdCore*             BD-Core-FHIR-IG bundle builder (Phase F) — POST /bd-core/cases
 tests/Prohori.Api.Tests/  xUnit — 30 unit + 2 integration (Category=Integration)
 .github/workflows/     ci.yml — .NET build+tests, dashboard build, IG validate, integration
+src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
 web/                   React 19 + Vite + TS dashboard (Phase D)
 ig/                    FHIR Shorthand profile (Phase E); SUSHI-generated output is gitignored
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G

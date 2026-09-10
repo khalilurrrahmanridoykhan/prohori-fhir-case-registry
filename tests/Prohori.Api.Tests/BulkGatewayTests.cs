@@ -101,6 +101,24 @@ public class BulkGatewayTests(AuthenticatedFactory factory) : IClassFixture<Auth
     }
     private static HttpResponseMessage Json(int status, string body, string type = "application/json") =>
         new((HttpStatusCode)status) { Content = new StringContent(body, Encoding.UTF8, type) };
+
+    [Fact]
+    public async Task Export_parameters_are_forwarded_without_losing_repeated_filters()
+    {
+        using var host = Host(new FakeHandler(request =>
+        {
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(request.RequestUri!.Query);
+            query["_typeFilter"].ToArray().ShouldBe(new[] { "Observation?status=final", "Patient?active=true" });
+            query["_since"].ToString().ShouldBe("2026-09-09T00:00:00Z");
+            query["_type"].ToString().ShouldBe("Patient,Observation");
+            query["_outputFormat"].ToString().ShouldBe("application/fhir+ndjson");
+            var response = Json(202, "");
+            response.Content.Headers.ContentLocation = new Uri("https://hapi.fhir.org/baseR4/$export-poll-status?_jobId=two");
+            return response;
+        }));
+        (await Client(host).GetAsync("/bulk/fhir/Patient/$export?_type=Patient,Observation&_since=2026-09-09T00:00:00Z&_typeFilter=Observation%3Fstatus%3Dfinal&_typeFilter=Patient%3Factive%3Dtrue"))
+            .StatusCode.ShouldBe(HttpStatusCode.Accepted);
+    }
     private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> send) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(send(request));

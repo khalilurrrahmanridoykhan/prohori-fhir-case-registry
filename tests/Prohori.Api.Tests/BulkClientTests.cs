@@ -80,6 +80,36 @@ public class BulkClientTests
     }
 
     [Theory]
+    [InlineData("error")]
+    [InlineData("deleted")]
+    public async Task Partial_or_deletion_manifests_never_create_a_snapshot(string field)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        using var key = RSA.Create(2048);
+        using var http = new HttpClient(new Handler(request =>
+        {
+            if (request.RequestUri!.AbsolutePath == "/token") return Response(HttpStatusCode.OK,
+                """{"access_token":"test-token","token_type":"Bearer","scope":"system/*.read","expires_in":300}""");
+            if (request.RequestUri.AbsolutePath.EndsWith("$export"))
+            {
+                var response = Response(HttpStatusCode.Accepted);
+                response.Content.Headers.ContentLocation = new Uri("http://localhost/job");
+                return response;
+            }
+            return Response(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+            {
+                ["transactionTime"] = "2026-09-09T00:00:00Z", ["request"] = "http://localhost/$export",
+                ["requiresAccessToken"] = true, ["output"] = Array.Empty<object>(), ["error"] = Array.Empty<object>(),
+                [field] = new[] { new { type = "OperationOutcome", url = "http://localhost/errors" } }
+            }));
+        }));
+        var options = ExportOptions.Parse(["--base-url", "http://localhost/", "--output", directory, "--poll-seconds", "1"]);
+        var auth = new BackendAuthentication(http, "backend", new Uri("http://localhost/token"), key);
+        await Should.ThrowAsync<InvalidOperationException>(() => new BulkExport(http, auth, options).Run(default));
+        Directory.Exists(directory).ShouldBeFalse();
+    }
+
+    [Theory]
     [InlineData("{}")]
     [InlineData("{\"transactionTime\":\"2026-09-09T00:00:00Z\",\"request\":\"x\",\"requiresAccessToken\":true,\"output\":null,\"error\":[]}")]
     public void Incomplete_manifest_fails(string json) => Should.Throw<InvalidOperationException>(() => BulkExport.ParseManifest(json));

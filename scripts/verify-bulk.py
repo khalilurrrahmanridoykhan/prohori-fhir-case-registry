@@ -59,8 +59,11 @@ def assertion(**overrides):
 
 
 def grant(jwt, scope='system/*.read'):
-    data = urllib.parse.urlencode(dict(grant_type='client_credentials', client_id=CLIENT, scope=scope,
-        client_assertion_type='urn:ietf:params:oauth:client-assertion-type:jwt-bearer', client_assertion=jwt)).encode()
+    form = dict(grant_type='client_credentials', client_id=CLIENT,
+        client_assertion_type='urn:ietf:params:oauth:client-assertion-type:jwt-bearer', client_assertion=jwt)
+    if scope is not None:
+        form['scope'] = scope
+    data = urllib.parse.urlencode(form).encode()
     return request(TOKEN, data, {'Content-Type': 'application/x-www-form-urlencoded'})
 
 
@@ -80,7 +83,7 @@ signature = bytearray(base64.urlsafe_b64decode(parts[2] + '=' * (-len(parts[2]) 
 signature[0] ^= 1
 assert grant('.'.join(parts[:2] + [b64(signature)]))[0] in (400, 401), 'Bad signature accepted'
 assert request(API + '/bulk/fhir/$export')[0] == 401
-status, body, _ = grant(assertion(), scope='')
+status, body, _ = grant(assertion(), scope=None)
 assert status == 200
 assert request(API + '/bulk/fhir/$export', headers={'Authorization': 'Bearer ' + json.loads(body)['access_token']})[0] == 403
 assert request(API + '/bulk/fhir/$export?_type=Binary', headers={'Authorization': 'Bearer ' + token, 'Prefer': 'respond-async'})[0] == 400

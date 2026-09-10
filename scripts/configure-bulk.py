@@ -17,7 +17,7 @@ realm = {
         'standardFlowEnabled': False, 'directAccessGrantsEnabled': False,
         'clientAuthenticatorType': 'client-jwt', 'fullScopeAllowed': False,
         'defaultClientScopes': [], 'optionalClientScopes': ['system/*.read'],
-        'attributes': {'use.jwks.url': 'false', 'jwks': json.dumps(jwks),
+        'attributes': {'use.jwks.url': 'false', 'use.jwks.string': 'true', 'jwks.string': json.dumps(jwks),
                        'token.endpoint.auth.signing.alg': 'RS384'},
         'protocolMappers': [{
             'name': 'api-audience', 'protocol': 'openid-connect',

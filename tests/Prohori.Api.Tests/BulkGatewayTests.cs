@@ -92,6 +92,7 @@ public class BulkGatewayTests(AuthenticatedFactory factory) : IClassFixture<Auth
     }
     [Theory]
     [InlineData("?_since=not-a-date")]
+    [InlineData("?_since=2026-09-09T00:00:00")]
     [InlineData("?_type=Binary")]
     [InlineData("?url=https://attacker.invalid")]
     public async Task Invalid_export_arguments_do_not_reach_HAPI(string query)
@@ -118,6 +119,40 @@ public class BulkGatewayTests(AuthenticatedFactory factory) : IClassFixture<Auth
         }));
         (await Client(host).GetAsync("/bulk/fhir/Patient/$export?_type=Patient,Observation&_since=2026-09-09T00:00:00Z&_typeFilter=Observation%3Fstatus%3Dfinal&_typeFilter=Patient%3Factive%3Dtrue"))
             .StatusCode.ShouldBe(HttpStatusCode.Accepted);
+    }
+
+    [Fact]
+    public async Task Delta_download_excludes_unchanged_forward_references_and_boundary_timestamp()
+    {
+        const string rows = """
+            {"resourceType":"Encounter","id":"old","meta":{"lastUpdated":"2026-09-08T00:00:00Z"}}
+            {"resourceType":"Encounter","id":"boundary","meta":{"lastUpdated":"2026-09-09T00:00:00Z"}}
+            {"resourceType":"Encounter","id":"changed","meta":{"lastUpdated":"2026-09-09T00:00:01Z"}}
+            """;
+        using var host = Host(new FakeHandler(_ => Json(200, rows, "application/fhir+ndjson")));
+        var job = host.Services.GetRequiredService<BulkJobStore>().Add("backend-one",
+            new Uri("https://hapi.fhir.org/baseR4/$export-poll-status"), "http://localhost/bulk/fhir/$export",
+            DateTimeOffset.Parse("2026-09-09T00:00:00Z"))!;
+        job.Files = new Dictionary<string, Uri> { ["0"] = new("https://hapi.fhir.org/baseR4/Binary/one") };
+        var response = await Client(host).GetAsync($"/bulk/jobs/{job.Id}/files/0");
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var downloaded = await response.Content.ReadAsStringAsync();
+        downloaded.ShouldContain("changed");
+        downloaded.ShouldNotContain("boundary");
+        downloaded.ShouldNotContain("old");
+        downloaded.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length.ShouldBe(1);
+    }
+
+    [Theory]
+    [InlineData("{\"resourceType\":\"Patient\",\"id\":\"missing-timestamp\"}")]
+    [InlineData("not-json")]
+    public async Task Malformed_delta_fails_instead_of_silently_advancing_the_watermark(string row)
+    {
+        using var host = Host(new FakeHandler(_ => Json(200, row, "application/fhir+ndjson")));
+        var job = host.Services.GetRequiredService<BulkJobStore>().Add("backend-one",
+            new Uri("https://hapi.fhir.org/baseR4/$export-poll-status"), "http://localhost/bulk/fhir/$export", DateTimeOffset.UtcNow)!;
+        job.Files = new Dictionary<string, Uri> { ["0"] = new("https://hapi.fhir.org/baseR4/Binary/one") };
+        (await Client(host).GetAsync($"/bulk/jobs/{job.Id}/files/0")).StatusCode.ShouldBe(HttpStatusCode.BadGateway);
     }
     private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> send) : HttpMessageHandler
     {

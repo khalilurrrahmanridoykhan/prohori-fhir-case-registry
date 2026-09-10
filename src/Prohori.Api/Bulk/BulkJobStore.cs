@@ -5,13 +5,13 @@ public sealed class BulkJobStore
 {
     private readonly Dictionary<string, BulkJob> _jobs = new();
     private readonly object _gate = new();
-    public BulkJob? Add(string owner, Uri statusUrl, string requestUrl)
+    public BulkJob? Add(string owner, Uri statusUrl, string requestUrl, DateTimeOffset? since = null)
     {
         lock (_gate)
         {
             foreach (var expired in _jobs.Where(x => x.Value.Expires <= DateTimeOffset.UtcNow).Select(x => x.Key).ToArray()) _jobs.Remove(expired);
             if (_jobs.Count >= 100) return null;
-            var job = new BulkJob(Guid.NewGuid().ToString("N"), owner, statusUrl, requestUrl, DateTimeOffset.UtcNow.AddHours(24));
+            var job = new BulkJob(Guid.NewGuid().ToString("N"), owner, statusUrl, requestUrl, DateTimeOffset.UtcNow.AddHours(24), since);
             _jobs.Add(job.Id, job);
             return job;
         }
@@ -23,7 +23,7 @@ public sealed class BulkJobStore
     }
 }
 
-public sealed record BulkJob(string Id, string Owner, Uri StatusUrl, string RequestUrl, DateTimeOffset Expires)
+public sealed record BulkJob(string Id, string Owner, Uri StatusUrl, string RequestUrl, DateTimeOffset Expires, DateTimeOffset? Since)
 {
     public IReadOnlyDictionary<string, Uri> Files { get; set; } = new Dictionary<string, Uri>();
 }

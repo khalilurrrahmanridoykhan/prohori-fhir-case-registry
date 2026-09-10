@@ -99,6 +99,15 @@ File count is server-selected: more than one file may contain the same resource
 type. Empty output is valid. A nonempty `error` or `deleted` array makes the
 client fail without advancing its snapshot; partial success is not success.
 
+**Observed HAPI 8 behavior:** a Group `_since` export also included an unchanged
+Encounter referenced by the changed Observation. The gateway therefore streams
+the real exported NDJSON through a `meta.lastUpdated > _since` filter for this
+stable-cohort lab. Old references remain in the client's previous full snapshot.
+An advertised file may become empty after filtering. Missing/invalid timestamps
+or malformed rows fail the download, rather than silently advancing the
+checkpoint. This correction lives in the gateway; the upstream HAPI manifest
+and files remain untouched. Group membership changes require a full refresh.
+
 ## Export scope and incremental pulls
 
 | Client option | FHIR request / meaning |

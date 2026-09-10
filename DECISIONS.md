@@ -23,6 +23,10 @@
 - Gate CI on the actual two-visit full export and a one-observation delta using
   Docker services. Keep this separate from the non-blocking public sandbox tests.
   Preserve each implementation commit with a merge commit and tag `phase-i`.
+- Live HAPI 8 Group `_since` exported the changed Observation plus its unchanged
+  Encounter reference. Enforce `meta.lastUpdated > _since` while streaming the
+  gateway's NDJSON downloads, retaining old references in the full local snapshot.
+  Fail malformed delta rows and require a full refresh for membership changes.
 
 ## 2026-09-09 — Phase H
 

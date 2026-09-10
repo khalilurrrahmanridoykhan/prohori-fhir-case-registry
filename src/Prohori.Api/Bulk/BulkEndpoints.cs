@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
@@ -45,8 +46,14 @@ public static partial class BulkEndpoints
             return Results.Problem(statusCode: 400, detail: "Bulk export requires Prefer: respond-async.");
         if (query.Keys.Any(key => !Parameters.Contains(key)) || query.Any(x => x.Key != "_typeFilter" && x.Value.Count != 1))
             return Results.Problem(statusCode: 400, detail: "Unsupported or repeated export parameter.");
-        if (query.TryGetValue("_since", out var since) && !DateTimeOffset.TryParse(since, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out _))
-            return Results.Problem(statusCode: 400, detail: "_since must be an ISO timestamp.");
+        DateTimeOffset? changedSince = null;
+        if (query.TryGetValue("_since", out var since))
+        {
+            if (!DateTimeOffset.TryParse(since, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed)
+                || !(since.ToString().EndsWith('Z') || Regex.IsMatch(since.ToString(), "[+-][0-9]{2}:[0-9]{2}$")))
+                return Results.Problem(statusCode: 400, detail: "_since must be an ISO timestamp with a timezone.");
+            changedSince = parsed;
+        }
         if (query.TryGetValue("_outputFormat", out var format) && format != "application/fhir+ndjson")
             return Results.Problem(statusCode: 400, detail: "Use application/fhir+ndjson.");
         if (query.TryGetValue("_type", out var types) && types.ToString().Split(',').Any(t => t is not ("Patient" or "Encounter" or "Observation" or "Condition")))
@@ -67,7 +74,7 @@ public static partial class BulkEndpoints
             var location = response.Content.Headers.ContentLocation?.ToString();
             if (!TryUpstreamUrl(http.BaseAddress!, location, out var statusUrl) || statusUrl!.AbsolutePath != http.BaseAddress!.AbsolutePath + "$export-poll-status")
                 return Results.Problem(statusCode: 502, detail: "FHIR server returned an invalid polling URL.");
-            var job = jobs.Add(Owner(context.User), statusUrl, context.Request.GetEncodedUrl());
+            var job = jobs.Add(Owner(context.User), statusUrl, context.Request.GetEncodedUrl(), changedSince);
             if (job == null) return Results.Problem(statusCode: 503, detail: "Export registry is full; retry after jobs expire.");
             context.Response.Headers.ContentLocation = new Uri(new Uri(context.Request.GetEncodedUrl()), $"/bulk/jobs/{job.Id}").AbsoluteUri;
             context.Response.Headers.RetryAfter = "2";
@@ -133,9 +140,30 @@ public static partial class BulkEndpoints
             context.Response.StatusCode = (int)response.StatusCode;
             context.Response.ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/fhir+ndjson";
             context.Response.Headers.CacheControl = "no-store";
-            await response.Content.CopyToAsync(context.Response.Body, context.RequestAborted);
+            if (response.IsSuccessStatusCode && job.Since is { } since)
+            {
+                // HAPI Group exports can include old forward-referenced resources. Enforce the
+                // stable-cohort delta boundary on actual exported rows, without altering HAPI data.
+                using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(context.RequestAborted));
+                while (await reader.ReadLineAsync(context.RequestAborted) is { } line)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    using var resource = JsonDocument.Parse(line);
+                    if (!resource.RootElement.TryGetProperty("meta", out var meta)
+                        || !meta.TryGetProperty("lastUpdated", out var updated)
+                        || !updated.TryGetDateTimeOffset(out var timestamp))
+                        throw new FormatException("Delta resource has no usable lastUpdated.");
+                    if (timestamp > since) await context.Response.WriteAsync(line + "\n", context.RequestAborted);
+                }
+            }
+            else await response.Content.CopyToAsync(context.Response.Body, context.RequestAborted);
         }
-        catch (HttpRequestException) when (!context.Response.HasStarted) { context.Response.StatusCode = 502; }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or JsonException or FormatException or InvalidOperationException)
+        {
+            // Never turn a truncated or malformed delta into a successful partial download.
+            if (context.Response.HasStarted) context.Abort();
+            else { context.Response.Clear(); context.Response.StatusCode = 502; }
+        }
     }
 
     public static bool TryUpstreamUrl(Uri baseUrl, string? location, out Uri? result)

@@ -3,6 +3,11 @@ import FHIR from 'fhirclient';
 import type Client from 'fhirclient/lib/Client';
 
 export let smartClient: Client | undefined;
+
+/** The bearer token for calling Prohori.Api directly (writes never go through fhirclient's FHIR-only request()). */
+export function accessToken(): string | undefined {
+  return smartClient?.state.tokenResponse?.access_token;
+}
 export async function initializeSmart() {
   const params = new URLSearchParams(location.search);
   if (params.has('code') || params.has('state') || sessionStorage.getItem('prohori-smart')) {

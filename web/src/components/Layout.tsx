@@ -12,6 +12,7 @@ export function Layout({ children }: { children: ReactNode }) {
             Pro<span>hori</span>
           </Link>
           <span className="masthead__tag">{smartClient ? `Patient ${smartClient.patient.id}` : "field case registry"}</span>
+          <Link to="/new-case" className="masthead__link">New case</Link>
           {!smartClient && <a href="/launch.html">SMART launch</a>}
           <span className="masthead__server">{(smartClient?.state.serverUrl ?? FHIR_BASE).replace(/^https?:\/\//, "")}</span>
         </div>

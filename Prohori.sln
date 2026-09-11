@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{00139C5C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prohori.Api.Tests", "tests\Prohori.Api.Tests\Prohori.Api.Tests.csproj", "{0E62242B-DD1E-4EC1-A2AB-1F5C64CDEFE5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prohori.BulkClient", "src\Prohori.BulkClient\Prohori.BulkClient.csproj", "{A6DF9995-5364-4323-891C-E3B7F098201E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{0E62242B-DD1E-4EC1-A2AB-1F5C64CDEFE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E62242B-DD1E-4EC1-A2AB-1F5C64CDEFE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E62242B-DD1E-4EC1-A2AB-1F5C64CDEFE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6DF9995-5364-4323-891C-E3B7F098201E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6DF9995-5364-4323-891C-E3B7F098201E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6DF9995-5364-4323-891C-E3B7F098201E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6DF9995-5364-4323-891C-E3B7F098201E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E06AC2D7-B515-43E7-88DD-7C668E88CD8F} = {593B42B8-00AC-439C-BAED-DA71E9E49B28}
 		{0E62242B-DD1E-4EC1-A2AB-1F5C64CDEFE5} = {00139C5C-22B0-407E-B3BA-2B325491ED7F}
+		{A6DF9995-5364-4323-891C-E3B7F098201E} = {593B42B8-00AC-439C-BAED-DA71E9E49B28}
 	EndGlobalSection
 EndGlobal

@@ -1,3 +1,4 @@
+using Prohori.Api.Bulk;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -49,6 +50,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("BulkRead", policy => policy.RequireAuthenticatedUser().RequireClaim("sub")
+        .RequireAssertion(context => context.User.FindAll("scope").SelectMany(c => c.Value.Split(' ')).Contains("system/*.read", StringComparer.Ordinal)));
     options.AddPolicy("PatientRead", policy => policy.RequireAuthenticatedUser().RequireClaim("patient")
         .RequireAssertion(context => context.User.FindAll("scope").SelectMany(c => c.Value.Split(' ')).Contains("patient/*.rs")));
     options.AddPolicy("CaseWrite", policy =>
@@ -59,6 +62,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .WithOrigins(builder.Configuration["Smart:WebOrigin"] ?? "http://localhost:5173")
     .AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("ETag", "Preference-Applied")));
+builder.Services.AddSingleton<BulkJobStore>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -119,6 +123,7 @@ app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseSe
 
 app.MapPatientWrites();
 app.MapLocalSmart();
+app.MapBulk();
 
 app.Run();
 

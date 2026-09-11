@@ -1,5 +1,33 @@
 # Decisions
 
+## 2026-09-10 — Phase I
+
+- Keep HAPI's real Bulk Data batch engine behind an opt-in authenticated API
+  gateway. Keycloak registers the backend public JWKS by value and validates
+  RS384 `private_key_jwt`; it does not turn HAPI into a native SMART server.
+- Use an isolated HAPI 8.0.0 / Keycloak 26.6.0 Compose project on loopback
+  8090/8091, with the API on 5280. Generate RSA3072 keys locally; ignore keys,
+  generated realm configuration and export files. No shared private credential.
+- Match the plan's `system/*.read` scope and advertise permission-v1. Keep bulk
+  disabled in the deployed application until a production auth/storage setup
+  is configured; do not conflate a local backend lab with the public dashboard.
+- Bind polling and downloads to the access-token subject. Validate upstream
+  polling/Binary URLs, rewrite manifest links through the gateway, and disable
+  redirects. The bounded in-memory job registry is explicitly single-instance.
+- Choose aggregate JSON instead of Postgres for the small synthetic cohort.
+  One Encounter counts as a field case; RDT positivity uses known positive and
+  negative observations. Full exports replace state; deltas upsert by type/id.
+  Commit the server watermark last and reject gaps or changed export scope.
+- Fail on error/deletion manifests. Cohort removals, filter changes, and servers
+  without deletion feeds require full refreshes; this is not a general warehouse.
+- Gate CI on the actual two-visit full export and a one-observation delta using
+  Docker services. Keep this separate from the non-blocking public sandbox tests.
+  Preserve each implementation commit with a merge commit and tag `phase-i`.
+- Live HAPI 8 Group `_since` exported the changed Observation plus its unchanged
+  Encounter reference. Enforce `meta.lastUpdated > _since` while streaming the
+  gateway's NDJSON downloads, retaining old references in the full local snapshot.
+  Fail malformed delta rows and require a full refresh for membership changes.
+
 ## 2026-09-09 — Phase H
 
 - Use fhirclient for SMART authorization-code + S256 PKCE, state and token

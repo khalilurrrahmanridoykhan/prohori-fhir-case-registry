@@ -23,10 +23,10 @@ public class AuthenticatedFactory : WebApplicationFactory<Program>
             options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(configuration);
             options.TokenValidationParameters.ValidIssuer = configuration.Issuer;
         }));
-    public HttpClient Authorized(string scope = "user/*.write", string audience = "prohori-api", bool expired = false)
+    public HttpClient Authorized(string scope = "user/*.write", string audience = "prohori-api", bool expired = false, string subject = "test-user")
     {
         var client = CreateClient();
-        var token = new JwtSecurityToken("https://issuer.test", audience, [new Claim("scope", scope)],
+        var token = new JwtSecurityToken("https://issuer.test", audience, [new Claim("scope", scope), new Claim("sub", subject)],
             DateTime.UtcNow.AddHours(-2), expired ? DateTime.UtcNow.AddHours(-1) : DateTime.UtcNow.AddMinutes(5),
             new SigningCredentials(_key, SecurityAlgorithms.RsaSha256));
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(token));

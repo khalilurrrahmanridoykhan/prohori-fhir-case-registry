@@ -1,5 +1,36 @@
 # Decisions
 
+## 2026-09-11 — Phase J (Questionnaire & SDC)
+
+- Build the `Questionnaire` in C# (`QuestionnaireCatalog.cs`), not FSH. Every other
+  Prohori profile constrains instances a server receives; a Questionnaire's returned
+  resource *is* the artifact, so a separate FSH definition would just be a second place
+  for a linkId to drift from the extraction code that reads it back. Exported for CI via
+  `--export-questionnaire` (mirrors `--export-bd-core`) and validated against base FHIR
+  R4 only — no custom IG, nothing is being constrained. See `docs/sdc.md`.
+- `QuestionnaireLinkIds` (C#) / `LINK` (`web/src/questionnaire/linkIds.ts`) are hand-kept
+  string mirrors, same relationship `terminology.ts` already has with `Systems.cs`. A
+  small, stable id set; `QuestionnaireCatalogTests` and `QuestionnaireExtractionTests`
+  independently pin the shape from both ends so drift fails a test, not silently.
+- `$extract` never re-implements Bundle construction: it maps a `QuestionnaireResponse`
+  into the same `CaseSubmission` the typed `/cases` endpoint takes, then hands off to the
+  existing `CaseBundleBuilder` + `FhirCaseService.SubmitAsync(Bundle)`. One Bundle-shape,
+  proven live in Phase C's integration tests, carries over transitively.
+- `$populate`'s request body is a bare `{"nationalId": "..."}`, not a formal `Parameters`
+  resource. A deliberate simplification for a single lookup field — documented, not
+  silent, same as the BD-Core `bd-condition` workaround (Phase F).
+- `disease`/`rdtResult` `answerOption`s carry the identical SNOMED codes
+  `CaseBundleBuilder` already writes onto the Observation, so extraction is a lookup, not
+  a translation — real terminology translation (`ConceptMap`/`$translate`) is Phase K.
+- The dashboard's New Case form (`QuestionnaireForm.tsx`) renders `Questionnaire.item[]`
+  generically by `item.type` (group/string/choice/date/dateTime), evaluating `enableWhen`
+  client-side — nothing about which fields exist or when `diagnosisNote` shows is
+  hardcoded in the renderer. `$populate`/`$extract` require the same `CaseWrite`
+  bearer-token scope as `/cases` (Phase H); no token shows a SMART-launch prompt rather
+  than a broken form.
+- Preserve implementation history with a merge commit and tag `phase-j`, same ritual as
+  every prior phase.
+
 ## 2026-09-10 — Phase I
 
 - Keep HAPI's real Bulk Data batch engine behind an opt-in authenticated API

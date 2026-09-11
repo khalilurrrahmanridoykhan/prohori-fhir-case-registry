@@ -8,7 +8,7 @@
 | JSON Patch, FHIRPath Patch, ETag / If-Match, return preferences | H complete — version-required API writes and live stale replay |
 | respond-async negotiation | I implemented — real HAPI 202/poll/manifest/NDJSON sequence |
 | SMART Backend Services and Bulk Data export | I implemented — [RS384, cohort export and incremental aggregates](bulk-export.md) |
-| Questionnaire, SDC populate / extract | J planned |
+| Questionnaire, SDC populate / extract | J implemented — [Questionnaire → $populate/$extract → the same case Bundle](sdc.md) |
 | Terminology services | K planned |
 | HL7 v2, StructureMap | L planned |
 | CQL, Measure, MeasureReport | M planned |

@@ -54,3 +54,6 @@ web/playwright-report/
 
 # Backend-service keys, generated Keycloak realm and synthetic export state
 .bulk/
+
+# Questionnaire build output (scripts/validate-questionnaire.sh)
+.sdc/

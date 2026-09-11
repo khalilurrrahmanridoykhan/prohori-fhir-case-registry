@@ -111,6 +111,22 @@ jobs:
       - name: Build the BD-Core Bundle and validate against bd.fhir.core
         run: bash scripts/bd-core.sh   # no --submit in CI
 
+  sdc:
+    name: SDC — build Questionnaire + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: dotnet build -c Release src/Prohori.Api
+      - name: Build the Questionnaire and validate against base FHIR R4
+        run: bash scripts/validate-questionnaire.sh
+
   integration:
     name: integration tests (sandbox, non-blocking)
     runs-on: ubuntu-latest

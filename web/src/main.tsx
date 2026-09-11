@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { CaseDetail } from "./pages/CaseDetail";
+import { NewCase } from "./pages/NewCase";
 import "./styles.css";
 import { initializeSmart } from "./smart";
 
@@ -24,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/cases/:patientId" element={<CaseDetail />} />
+            <Route path="/new-case" element={<NewCase />} />
           </Routes>
         </Layout>
       </BrowserRouter>

@@ -71,6 +71,16 @@ The .NET client produces NDJSON, a reusable snapshot and case/positivity JSON by
 Bangladesh division. [Setup, async flow and limitations](docs/bulk-export.md).
 Bulk export is an isolated local/CI lab; it is disabled on the deployed API.
 
+## Structured Data Capture — Questionnaire, $populate, $extract (Phase J)
+
+Field intake as a FHIR `Questionnaire`, rendered generically by the dashboard's
+**New Case** form. Submitting it calls `$extract`, which builds the *same*
+Patient/Encounter/Observation Bundle `POST /cases` does — one Bundle-shape, two
+ways in. `$populate` prefills a returning patient's demographics by National ID.
+
+[Field → resource map, ODK/KoBo equivalence, and why the Questionnaire is built
+in C# rather than FSH](docs/sdc.md).
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -84,6 +94,7 @@ Bulk export is an isolated local/CI lab; it is disabled on the deployed API.
 | **G** | Ship it live — Vercel + Render, seed data, polish | ✅ config ready (`phase-g`) — see [Deploy](#deploy-phase-g) |
 | **H** | SMART launch, Keycloak, protected writes, PATCH / If-Match | Implemented and verified ([Inferno caveat](docs/phase-h-verification.md)) |
 | **I** | Backend Services, real Bulk Data export, incremental aggregates | Implemented — [guide and verification](docs/bulk-export.md) |
+| **J** | Questionnaire, SDC `$populate` / `$extract`, generic form renderer | Implemented — [field map and design notes](docs/sdc.md) |
 
 ## Repository layout
 
@@ -96,10 +107,13 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/                CaseBundleBuilder, FhirCaseService, OperationOutcomeMapper
   Models/              CaseSubmission DTO
   Fhir/BdCore*             BD-Core-FHIR-IG bundle builder (Phase F) — POST /bd-core/cases
-tests/Prohori.Api.Tests/  xUnit — 30 unit + 2 integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG validate, integration
+  Fhir/Questionnaire*      Questionnaire catalog + $populate/$extract (Phase J)
+tests/Prohori.Api.Tests/  xUnit — unit + integration (Category=Integration)
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC validate, integration
 src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
 web/                   React 19 + Vite + TS dashboard (Phase D)
+  src/questionnaire/       generic Questionnaire form renderer + $populate/$extract client (Phase J)
+  src/pages/NewCase.tsx    the field-intake page
 ig/                    FHIR Shorthand profile (Phase E); SUSHI-generated output is gitignored
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
@@ -198,6 +212,23 @@ extensions, division/upazila geocodes, ICD-11 diagnosis. Verified: **0 validator
 errors** and **accepted by the live DGHS sandbox**.
 See [`docs/bd-core-submission.md`](docs/bd-core-submission.md).
 
+## Fill out a case as a form (Phase J)
+
+Needs the API running locally with auth configured (see
+[SMART setup](docs/smart-launch.md)) — the deployed Vercel dashboard is read-only
+and does not expose this.
+
+```bash
+dotnet run --project src/Prohori.Api          # the $populate / $extract endpoints
+bash scripts/validate-questionnaire.sh        # build + validate the Questionnaire itself
+```
+
+Open the dashboard, **SMART launch**, then **New case**. The form is rendered
+directly from `GET /questionnaire-response/questionnaire` — no field, requirement
+or `enableWhen` rule is hardcoded client-side. Enter a known National ID and
+**Prefill** to demo `$populate`; submitting calls `$extract`, which builds the
+same Bundle `POST /cases` would. See [`docs/sdc.md`](docs/sdc.md).
+
 ## Deploy (Phase G)
 
 Everything is configured for a **$0** deploy. One-time setup:
@@ -232,6 +263,7 @@ Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
 | E | Docker or Colima (local HAPI), Node + `fsh-sushi` (profile), Java 11+ (validator) |
 | F | .NET 8 SDK, Java 11+ (`validator_cli.jar`) — `scripts/bd-core.sh` fetches the BD-Core package |
 | G | a Vercel account + a Render account (both free) |
+| J | .NET 8 SDK, Node 22+, Java 11+ (`validator_cli.jar`) — a SMART launch for `$populate`/`$extract` |
 
 ## Phase-by-phase
 

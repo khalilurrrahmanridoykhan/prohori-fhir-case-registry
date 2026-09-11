@@ -19,6 +19,11 @@ if (args.Length == 3 && args[0] == "--export-bd-core")
     File.WriteAllText(args[2], BdCoreBundleBuilder.Build(submission).ToJson());
     return;
 }
+if (args.Length == 2 && args[0] == "--export-questionnaire")
+{
+    File.WriteAllText(args[1], QuestionnaireCatalog.Build().ToJson());
+    return;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,6 +129,7 @@ app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseSe
 app.MapPatientWrites();
 app.MapLocalSmart();
 app.MapBulk();
+app.MapQuestionnaire();
 
 app.Run();
 

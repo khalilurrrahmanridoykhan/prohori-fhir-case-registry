@@ -1,0 +1,14 @@
+Generation method: built-in image_gen tool.
+
+Use case: ads-marketing.
+Create a premium, extremely polished LinkedIn launch announcement graphic for Prohori, a developer-built FHIR health interoperability project. Square 1536x1536 composition suitable for LinkedIn feed. Editorial Swiss typography meets sophisticated software product campaign. Warm ivory background, near-black forest green typography, restrained burnt-orange brand accent, precise generous spacing. A small "Prohori" wordmark top left, with the "hori" portion burnt orange. Main headline huge, beautifully typeset, left aligned, exact text over three lines:
+"Health data.
+Connected with
+patient context."
+Under the headline, clear smaller subheading exact text:
+"SMART on FHIR, built into Prohori."
+The lower half features an exquisite custom dimensional illustration, NOT a generic stock image: three architectural frosted-glass and ivory panels linked by precise thin orange and dark green connector lines, depicting a patient record card, an access-control gateway, and a versioned record update. Elegant realistic studio-lit tactile paper and glass depth, sophisticated geometry. The gateway is a minimalist keyhole within a clean circular aperture, not an enormous cyber-security shield. Panels have the exact concise labels "Patient context", "Authorized access", "Version-safe updates". A few fine abstract data rows on the patient card without names or medical details. Tiny code tags "401", "403", "412" may appear as tasteful annotations near access/update panels, readable and correctly spelled. Keep the art ordered, with elegant negative space, not noisy.
+At the bottom a thin rule, then readable exact footer:
+".NET 8 + Firely   /   OAuth 2.0 + PKCE   /   FHIR R4"
+Small closing line exact text: "Explore the live demo and source code."
+Ensure extraordinary typographic hierarchy and beautiful mobile-feed legibility. No gradients behind text, no stock photography, no people, no brain graphics, no glowing neon, no fake metrics, no certification badges, no claim of production security, no Phase H text, no QR code, no fabricated URLs. All text strictly matches specified wording. This should look like an experienced health-tech company design director's launch artwork, confident, technical and refined.

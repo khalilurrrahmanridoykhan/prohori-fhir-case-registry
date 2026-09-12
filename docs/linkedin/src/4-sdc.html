@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="base.css" />
+<style>
+  h1 { max-width: 19ch; }
+  .lede {
+    margin-top: 30px;
+    font-family: var(--mono);
+    font-size: 20px;
+    line-height: 1.64;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+  .diptych {
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0 20px;
+    align-items: stretch;
+  }
+  .pane {
+    background: #0d1518;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .pane-h {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 13.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--chrome);
+  }
+  .pane-b {
+    padding: 22px 20px;
+    font-family: var(--mono);
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--ink-soft);
+    white-space: pre-wrap;
+    flex: 1;
+  }
+  .pane-b .p { color: var(--amber); }
+  .pane-b .dim { color: var(--muted); }
+  .pane-b .ok { color: var(--ok); font-weight: 600; }
+  .pane-b .step { color: var(--ink); }
+  .join {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 26px;
+    color: var(--muted);
+    padding-top: 4px;
+  }
+  .finding {
+    margin-top: 30px;
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1.68;
+    color: var(--muted);
+    border-left: 4px solid var(--ok);
+    padding-left: 18px;
+  }
+  .finding b { color: var(--ink-soft); font-weight: 600; }
+  .foot { margin-top: 40px; }
+</style>
+</head>
+<body>
+  <div class="board">
+    <div class="chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tab">new-case<b>.fhir</b></span>
+      <span class="chrome-right">Structured Data Capture</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">FHIR interoperability · Structured Data Capture</span>
+      <h1>Two ways to submit a case. <span class="ok">One Bundle either way.</span></h1>
+      <p class="lede">Prohori's New Case form renders a FHIR <b>Questionnaire</b>
+      generically — no field is hardcoded — then calls <b>$extract</b>, which
+      hands the answers to the exact same Bundle-builder the typed API uses.</p>
+
+      <div class="diptych">
+        <div class="pane">
+          <div class="pane-h">typed API</div>
+          <div class="pane-b"><span class="p">POST</span> /cases
+<span class="dim">{ "disease": "dengue",</span>
+<span class="dim">  "rdtResult": "positive", … }</span>
+
+<span class="step">CaseBundleBuilder.Build()</span></div>
+        </div>
+        <div class="join">=</div>
+        <div class="pane">
+          <div class="pane-h">field intake form</div>
+          <div class="pane-b"><span class="p">POST</span> /questionnaire-response/$extract
+<span class="dim">QuestionnaireResponse</span>
+<span class="dim">  (rendered from Questionnaire.item[])</span>
+
+<span class="step">CaseBundleBuilder.Build()</span></div>
+        </div>
+      </div>
+
+      <p class="finding">Extraction maps answers to the same <code>CaseSubmission</code>
+      the typed endpoint takes — <b>one Bundle-shape, two ways in</b>, so the
+      form inherits every conformance guarantee the API already has.</p>
+
+      <div class="foot">
+        <span class="stack">Questionnaire (C#) · $populate / $extract · generic item-tree renderer · enableWhen</span>
+        <span class="repo">github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

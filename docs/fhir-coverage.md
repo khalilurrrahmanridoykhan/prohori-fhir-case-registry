@@ -10,7 +10,7 @@
 | SMART Backend Services and Bulk Data export | I implemented — [RS384, cohort export and incremental aggregates](bulk-export.md) |
 | Questionnaire, SDC populate / extract | J implemented — [Questionnaire → $populate/$extract → the same case Bundle](sdc.md) |
 | Terminology services | K implemented — [$expand/$validate-code/$translate live against HAPI; fixes BD-Core's empty ICD-11 ValueSet](terminology.md) |
-| HL7 v2, StructureMap | L planned |
+| HL7 v2, StructureMap | L implemented — [Prohori.V2Gateway: ADT admit/update/discharge, FML authored not executed](hl7v2-to-fhir.md) |
 | CQL, Measure, MeasureReport | M planned |
 | IG Publisher and CapabilityStatement | N planned |
 | Subscriptions, audit, consent | O planned |

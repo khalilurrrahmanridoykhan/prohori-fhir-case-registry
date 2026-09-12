@@ -100,6 +100,22 @@ bash scripts/verify-terminology.sh
 
 [Full write-up, the offline-validator finding, and a draft upstream issue for the ICD-11 fix](docs/terminology.md).
 
+## HL7 v2 → FHIR (Phase L)
+
+`Prohori.V2Gateway` — a small facade in front of the ~80% of real hospital
+traffic that's still HL7 v2, not FHIR. Accepts a raw ER7 ADT message (parsed
+with NHapi), maps it to a Patient/Encounter transaction Bundle (declared as
+real FHIR Mapping Language in `ig/input/maps/hl7v2-to-fhir.map`, executed in
+C#), and submits it. `A01` admits create; `A08`/`A03` conditionally *update*
+the same Patient/Encounter instead — verified live.
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d hapi
+bash scripts/verify-v2-gateway.sh
+```
+
+[Segment → resource map, the idempotency rule, and why the StructureMap is authored but not executed via a live $transform](docs/hl7v2-to-fhir.md).
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -115,6 +131,7 @@ bash scripts/verify-terminology.sh
 | **I** | Backend Services, real Bulk Data export, incremental aggregates | Implemented — [guide and verification](docs/bulk-export.md) |
 | **J** | Questionnaire, SDC `$populate` / `$extract`, generic form renderer | Implemented — [field map and design notes](docs/sdc.md) |
 | **K** | Terminology — `$expand`/`$validate-code`/`$translate`, fixes BD-Core's empty ICD-11 ValueSet | Implemented — [write-up](docs/terminology.md) |
+| **L** | HL7 v2 → FHIR — `Prohori.V2Gateway`, ADT admit/update/discharge | Implemented — [write-up](docs/hl7v2-to-fhir.md) |
 
 ## Repository layout
 
@@ -130,12 +147,15 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/Questionnaire*      Questionnaire catalog + $populate/$extract (Phase J)
   Fhir/Terminology*, LegacyImport*  $translate client + legacy-import endpoint (Phase K)
 tests/Prohori.Api.Tests/  xUnit — unit + integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology validate, integration
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology/V2Gateway validate, integration
 src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
+src/Prohori.V2Gateway/  ADT parser (NHapi) + PID/PV1 -> FHIR mapper + POST /adt (Phase L)
+tests/Prohori.V2Gateway.Tests/  its own project — a bare Program class collides with Prohori.Api's
 web/                   React 19 + Vite + TS dashboard (Phase D)
   src/questionnaire/       generic Questionnaire form renderer + $populate/$extract client (Phase J)
   src/pages/NewCase.tsx    the field-intake page
 ig/                    FHIR Shorthand — ProhoriPatient (E), ProhoriObservation + terminology (K); SUSHI-generated output is gitignored
+  input/maps/hl7v2-to-fhir.map  FHIR Mapping Language (Phase L) — declared, not executed; see docs/hl7v2-to-fhir.md
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
 
@@ -286,6 +306,7 @@ Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
 | G | a Vercel account + a Render account (both free) |
 | J | .NET 8 SDK, Node 22+, Java 11+ (`validator_cli.jar`) — a SMART launch for `$populate`/`$extract` |
 | K | Docker or Colima (local HAPI), Node + `fsh-sushi`, Java 11+ (`validator_cli.jar`) |
+| L | .NET 8 SDK, Docker or Colima (local HAPI) |
 
 ## Phase-by-phase
 

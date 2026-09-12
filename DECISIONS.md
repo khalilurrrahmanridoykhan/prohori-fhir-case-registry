@@ -1,5 +1,39 @@
 # Decisions
 
+## 2026-09-13 — Phase L (HL7 v2 → FHIR)
+
+- **`Prohori.V2Gateway` is its own project and its own test project**, not folded into
+  `Prohori.Api`. A bare top-level `Program.cs` produces a global `Program` class regardless of
+  `RootNamespace`; referencing two such projects from one test project makes `Program` ambiguous
+  (hit this immediately trying to add V2Gateway tests to `Prohori.Api.Tests` — `CS0433`).
+  `tests/Prohori.V2Gateway.Tests/` avoids it entirely and mirrors "V2Gateway is its own
+  deployable service" architecturally, not just as a workaround.
+- **NHapi's `Terser`**, not the version-specific typed message classes NHapi also ships — one
+  code path handles ADT^A01/A08/A03 (and any v2 version) via string field paths (`/PID-3-1`)
+  instead of a typed class per event/version combination.
+- **The StructureMap is authored (real FHIR Mapping Language, `ig/input/maps/hl7v2-to-fhir.map`)
+  but not executed via a live `$transform`.** Checked local HAPI v8.0.0's own CapabilityStatement
+  first — it advertises no `transform` operation for StructureMap. matchbox (the plan's named
+  alternative) publishes to a registry unreachable within scope; standing up an unfamiliar Java
+  service on faith wasn't the right trade. The `.map` is the reviewable declaration of intent;
+  `V2ToFhirMapper.cs` is the executable side, hand-kept in sync (a segment→field table in
+  docs/hl7v2-to-fhir.md is the sync check) — the same relationship every other phase's
+  declarative artifact has had to its executable counterpart.
+- **Idempotency follows the trigger event, not one blanket rule**: `A01` conditionally *creates*
+  Patient + Encounter (`If-None-Exist`); `A08`/`A03` conditionally *update* both instead
+  (`PUT ?identifier=...`) — a retried admit must not duplicate, but a demographic correction or a
+  discharge must actually land on the existing record. Verified live: an A08 with a changed
+  address lands on the same Patient id; an A03 finishes the same Encounter with `period.end` set.
+- **`/adt` has no bearer-token auth**, unlike every other write path since Phase H. A real ADT
+  feed arrives over MLLP from a private hospital network segment, not a browser or public API
+  caller — bearer-token auth doesn't model that trust boundary, and reusing Phase H's SMART
+  machinery here would duplicate it without teaching anything new. Documented, not silent.
+- **MLLP itself is not implemented** — `/adt` takes plain HTTP POST, far easier to test and demo
+  at the cost of not being the real wire protocol. An MLLP listener would sit in front of the same
+  `V2Parser`/`V2ToFhirMapper` pair unchanged.
+- Preserve implementation history with a merge commit and tag `phase-l`, same ritual as every
+  prior phase.
+
 ## 2026-09-12 — Phase K (Terminology)
 
 - Author CodeSystem/ValueSet/ConceptMap in **FSH**, unlike Phase J's Questionnaire.

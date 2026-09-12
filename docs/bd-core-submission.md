@@ -71,6 +71,12 @@ hasn't been populated yet. Until BD-Core fills it in, Prohori records the
 diagnosis as **`Encounter.reasonCode`** (ICD-11 MMS), which is unconstrained by
 `bd-encounter` and accepted.
 
+**Phase K properly authors the ValueSet BD-Core should have shipped** —
+`bd-condition-icd11-diagnosis-valueset-fixed`, an enumerated `compose` over
+`1D40` (Dengue fever) and `1F4Z` (Malaria, unspecified) — and proves it with a
+real `$expand` / `$validate-code` against a live FHIR server. See
+[`docs/terminology.md`](terminology.md).
+
 ---
 
 ## Not done (optional add-ons from the plan)

@@ -127,6 +127,38 @@ jobs:
       - name: Build the Questionnaire and validate against base FHIR R4
         run: bash scripts/validate-questionnaire.sh
 
+  terminology:
+    name: Terminology — expand, validate-code, translate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g fsh-sushi
+      - name: Generate the terminology resources from FSH
+        run: cd ig && sushi . --snapshot
+      - name: Start local HAPI
+        run: docker compose -f deploy/docker-compose.yml up -d hapi
+      - name: Wait for HAPI
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/fhir/metadata || echo 000)
+            [ "$code" = "200" ] && exit 0
+            sleep 3
+          done
+          echo "HAPI never became ready" >&2; exit 1
+      - name: Load CodeSystem / ValueSets / ConceptMap
+        run: bash scripts/load-terminology.sh
+      - name: '$expand / $validate-code / $translate against local HAPI'
+        run: bash scripts/verify-terminology.sh
+      - name: Container diagnostics on failure
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs hapi --tail 100
+      - name: Stop local HAPI
+        if: always()
+        run: docker compose -f deploy/docker-compose.yml down -v
+
   integration:
     name: integration tests (sandbox, non-blocking)
     runs-on: ubuntu-latest

@@ -1,5 +1,44 @@
 # Decisions
 
+## 2026-09-12 — Phase K (Terminology)
+
+- Author CodeSystem/ValueSet/ConceptMap in **FSH**, unlike Phase J's Questionnaire.
+  `validator_cli` needs them as files (via `-ig`) to check `ProhoriObservation`'s
+  bindings, and `scripts/load-terminology.sh` needs the identical JSON to PUT
+  onto a live server; `sushi . --snapshot` produces one file both consumers use
+  directly, no export step. SUSHI 3.20's FSH grammar has no `ConceptMap:`
+  keyword — authored as a definitional `Instance: ... InstanceOf: ConceptMap`
+  instead. See docs/terminology.md.
+- **Finding:** the offline validator (`-tx n/a`) can't actually enforce a
+  `required` binding to an external code system it has no local definition
+  for (SNOMED CT, LOINC — both licensed, neither ships with the free HL7
+  packages): it emits a warning ("code cannot be validated") and passes
+  regardless. An out-of-ValueSet SNOMED code sailed through with
+  `Success: 0 errors` in testing. Dropping `-tx n/a` to force a real check
+  instead tries every terminology lookup against `tx.fhir.org` over the
+  network — **hung past 90 seconds** for a single resource in testing, not
+  viable in CI. Kept `-tx n/a` in `validate-ig.sh` (offline, structural checks
+  only for `ProhoriObservation`); binding enforcement is proved live against
+  local HAPI instead (`scripts/verify-terminology.sh`), which turns out to be
+  the more honest demonstration anyway — a production deployment validates
+  against a live server, not a static CLI.
+- Chose enumerated (`compose.include[].concept[]`) ValueSets throughout —
+  including `bd-condition-icd11-diagnosis-valueset-fixed`, Prohori's own
+  authored fix for BD-Core-FHIR-IG 0.4.6's empty ICD-11 ValueSet (Phase F
+  finding) — over filter/hierarchy-based composition. A closed, small list a
+  live server can `$expand`/`$validate-code` with no external terminology
+  loaded, matching what `bd-condition` should have shipped. Not filed upstream
+  automatically — that's a real action against a government repository under
+  someone else's ownership; a draft issue is ready in docs/terminology.md.
+- `$translate` demonstrated with real narrative purpose, not a bare demo
+  endpoint: `prohori-rdt-result-legacy-to-snomed` maps a legacy ODK export's
+  plain `pos`/`neg` codes to SNOMED CT, feeding a third way into the same case
+  Bundle (`POST /legacy-import/cases`, alongside the typed API and the SDC
+  form) — `TerminologyClient` calls `$translate`, then hands off to the same
+  `CaseBundleBuilder`/`FhirCaseService` every other path uses.
+- Preserve implementation history with a merge commit and tag `phase-k`, same
+  ritual as every prior phase.
+
 ## 2026-09-11 — Phase J (Questionnaire & SDC)
 
 - Build the `Questionnaire` in C# (`QuestionnaireCatalog.cs`), not FSH. Every other

@@ -81,6 +81,25 @@ ways in. `$populate` prefills a returning patient's demographics by National ID.
 [Field → resource map, ODK/KoBo equivalence, and why the Questionnaire is built
 in C# rather than FSH](docs/sdc.md).
 
+## Terminology — $expand, $validate-code, $translate (Phase K)
+
+A new `ProhoriObservation` profile required-binds its coded elements to
+Prohori's own SNOMED/LOINC ValueSets, and a `ConceptMap` translates a legacy
+ODK export's plain `pos`/`neg` RDT codes to SNOMED CT via `$translate` — a
+third way into the same case Bundle, at `POST /legacy-import/cases`. Also
+**properly authors the ICD-11 ValueSet BD-Core-FHIR-IG 0.4.6 ships empty**
+(the Phase F finding), and proves it live: the static validator can't actually
+enforce these bindings offline (see why in the doc) — a real terminology
+server can.
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d hapi
+bash scripts/load-terminology.sh
+bash scripts/verify-terminology.sh
+```
+
+[Full write-up, the offline-validator finding, and a draft upstream issue for the ICD-11 fix](docs/terminology.md).
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -95,6 +114,7 @@ in C# rather than FSH](docs/sdc.md).
 | **H** | SMART launch, Keycloak, protected writes, PATCH / If-Match | Implemented and verified ([Inferno caveat](docs/phase-h-verification.md)) |
 | **I** | Backend Services, real Bulk Data export, incremental aggregates | Implemented — [guide and verification](docs/bulk-export.md) |
 | **J** | Questionnaire, SDC `$populate` / `$extract`, generic form renderer | Implemented — [field map and design notes](docs/sdc.md) |
+| **K** | Terminology — `$expand`/`$validate-code`/`$translate`, fixes BD-Core's empty ICD-11 ValueSet | Implemented — [write-up](docs/terminology.md) |
 
 ## Repository layout
 
@@ -108,13 +128,14 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Models/              CaseSubmission DTO
   Fhir/BdCore*             BD-Core-FHIR-IG bundle builder (Phase F) — POST /bd-core/cases
   Fhir/Questionnaire*      Questionnaire catalog + $populate/$extract (Phase J)
+  Fhir/Terminology*, LegacyImport*  $translate client + legacy-import endpoint (Phase K)
 tests/Prohori.Api.Tests/  xUnit — unit + integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC validate, integration
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology validate, integration
 src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
 web/                   React 19 + Vite + TS dashboard (Phase D)
   src/questionnaire/       generic Questionnaire form renderer + $populate/$extract client (Phase J)
   src/pages/NewCase.tsx    the field-intake page
-ig/                    FHIR Shorthand profile (Phase E); SUSHI-generated output is gitignored
+ig/                    FHIR Shorthand — ProhoriPatient (E), ProhoriObservation + terminology (K); SUSHI-generated output is gitignored
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
 
@@ -264,6 +285,7 @@ Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
 | F | .NET 8 SDK, Java 11+ (`validator_cli.jar`) — `scripts/bd-core.sh` fetches the BD-Core package |
 | G | a Vercel account + a Render account (both free) |
 | J | .NET 8 SDK, Node 22+, Java 11+ (`validator_cli.jar`) — a SMART launch for `$populate`/`$extract` |
+| K | Docker or Colima (local HAPI), Node + `fsh-sushi`, Java 11+ (`validator_cli.jar`) |
 
 ## Phase-by-phase
 

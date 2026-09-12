@@ -1,0 +1,52 @@
+/// url = 'https://prohori.health/fhir/StructureMap/hl7v2-adt-to-bundle'
+/// name = 'Hl7v2AdtToBundle'
+/// title = 'HL7 v2 ADT -> FHIR transaction Bundle'
+///
+/// The FHIR Mapping Language declaration of the PID -> Patient / PV1 -> Encounter mapping
+/// Prohori.V2Gateway implements in C# (V2ToFhirMapper.cs) — see docs/hl7v2-to-fhir.md for why
+/// this is authored but not executed via $transform in this phase, and for the segment-by-field
+/// table kept in sync with this file by hand.
+
+map "https://prohori.health/fhir/StructureMap/hl7v2-adt-to-bundle" = "Hl7v2AdtToBundle"
+
+uses "https://prohori.health/fhir/StructureDefinition/adt-message" alias ADT as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias TargetBundle as target
+
+// A single group covers all three trigger events this gateway handles (A01 admit, A08 update,
+// A03 discharge) — they differ only in whether Patient/Encounter are conditionally created or
+// conditionally updated, which FML's create()/rule guards can't express as cleanly as the C#
+// idempotency logic in V2ToFhirMapper.Build does. That distinction is documented, not mapped.
+group AdtToBundle(source adt : ADT, target bundle : TargetBundle) {
+
+  adt.pid as pid -> bundle.entry as patientEntry then {
+    pid -> patientEntry.resource = create('Patient') as patient then {
+      pid.mrn as mrn -> patient.identifier as id then {
+        mrn -> id.system = 'https://prohori.health/fhir/identifier/v2-mrn' "mrn-system";
+        mrn -> id.value = mrn "mrn-value";
+      } "patient-identifier";
+      pid.familyName as fam, pid.givenName as giv -> patient.name as name then {
+        fam -> name.family = fam "family";
+        giv -> name.given = giv "given";
+      } "patient-name";
+      pid.gender as g -> patient.gender = translate(g, '#hl7v2-0001-to-administrative-gender', 'code') "gender";
+      pid.birthDate as b -> patient.birthDate = translate(b, '#hl7v2-date-to-fhir-date', 'code') "birthdate";
+      pid.city as city, pid.district as dist -> patient.address as addr then {
+        city -> addr.city = city "city";
+        dist -> addr.district = dist "district";
+      } "patient-address";
+    } "patient";
+  } "map-pid";
+
+  adt.pv1 as pv1 -> bundle.entry as encounterEntry where pv1.visitNumber.exists() then {
+    pv1 -> encounterEntry.resource = create('Encounter') as encounter then {
+      pv1.visitNumber as vn -> encounter.identifier as id then {
+        vn -> id.system = 'https://prohori.health/fhir/identifier/v2-visit-number' "vn-system";
+        vn -> id.value = vn "vn-value";
+      } "encounter-identifier";
+      pv1.patientClass as pc -> encounter.class = translate(pc, '#hl7v2-0004-to-v3-actcode', 'code') "class";
+      pv1 -> encounter.subject = reference(patientEntry.resource) "subject";
+      pv1.admitDateTime as ad -> encounter.period.start = ad "period-start";
+      pv1.dischargeDateTime as dd -> encounter.period.end = dd "period-end";
+    } "encounter";
+  } "map-pv1";
+}

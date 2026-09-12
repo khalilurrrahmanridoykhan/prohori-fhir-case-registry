@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="base.css" />
+<style>
+  h1 { max-width: 20ch; }
+  .lede {
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 20px;
+    line-height: 1.64;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+  .flow {
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .step {
+    background: #0d1518;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 20px 20px 18px;
+  }
+  .step .trig {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--amber-ink);
+    font-weight: 600;
+  }
+  .step .verb {
+    margin-top: 8px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .step .detail {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .step .ok { color: var(--ok); font-weight: 600; }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    color: var(--muted);
+    font-size: 20px;
+  }
+  .finding {
+    margin-top: 34px;
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1.68;
+    color: var(--muted);
+    border-left: 4px solid var(--pulse);
+    padding-left: 18px;
+  }
+  .finding b { color: var(--ink-soft); font-weight: 600; }
+  .foot { margin-top: 40px; }
+</style>
+</head>
+<body>
+  <div class="board">
+    <div class="chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tab">v2<b>gateway</b></span>
+      <span class="chrome-right">HL7 v2 → FHIR R4</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">FHIR interoperability · HL7 v2 integration</span>
+      <h1>Most hospitals still speak <span class="k">HL7 v2</span>, not FHIR.
+      <span class="ok">I built the bridge.</span></h1>
+      <p class="lede">Prohori.V2Gateway parses a raw ADT feed (NHapi) and maps
+      it onto the same Patient/Encounter Bundle shape the rest of the
+      registry already uses — one admit, two updates, no duplicates.</p>
+
+      <div class="flow">
+        <div class="step">
+          <div class="trig">ADT^A01 · admit</div>
+          <div class="verb">Creates</div>
+          <div class="detail">Patient + Encounter<br><span class="ok">If-None-Exist</span> on MRN / visit №</div>
+        </div>
+        <div class="step">
+          <div class="trig">ADT^A08 · update</div>
+          <div class="verb">Updates</div>
+          <div class="detail">same Patient, in place<br><span class="ok">PUT ?identifier=…</span></div>
+        </div>
+        <div class="step">
+          <div class="trig">ADT^A03 · discharge</div>
+          <div class="verb">Finishes</div>
+          <div class="detail">same Encounter<br><span class="ok">status → finished</span></div>
+        </div>
+      </div>
+
+      <p class="finding">Before claiming a live <code>$transform</code>, I checked: local HAPI
+      advertises none for <code>StructureMap</code>, and the engine the spec names couldn't be
+      reached. So the FHIR Mapping Language is <b>authored and documented</b>, not faked as
+      running — the honest answer beat the impressive-looking one.</p>
+
+      <div class="foot">
+        <span class="stack">.NET 8 · NHapi (ER7 parsing) · Firely SDK · FHIR Mapping Language · xUnit</span>
+        <span class="repo">github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

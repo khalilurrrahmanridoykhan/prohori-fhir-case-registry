@@ -214,15 +214,9 @@ jobs:
         run: docker compose -f deploy/docker-compose.yml down -v
 
   ig-publisher:
-    name: IG Publisher — build the site (+ deploy on main)
+    name: IG Publisher — build the site
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -273,9 +267,25 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           path: ig/output
+
+  # A separate job (not just a conditional step) because merely *referencing* the github-pages
+  # environment — even behind an `if:` — makes the whole job wait on that environment's
+  # deployment-branch rule; on a PR branch that rule blocks the job outright before any step
+  # runs, so the build above (which every PR needs to pass) can never share a job with this.
+  ig-deploy:
+    name: Deploy the IG to GitHub Pages
+    needs: ig-publisher
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - uses: actions/deploy-pages@v4
         id: deployment
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
   integration:
     name: integration tests (sandbox, non-blocking)

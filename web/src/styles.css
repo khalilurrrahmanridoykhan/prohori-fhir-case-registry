@@ -180,6 +180,14 @@ button {
   color: var(--positive);
 }
 
+.tile--measure {
+  border-left: 3px solid var(--accent);
+}
+
+.tile--measure .tile__label {
+  color: var(--accent);
+}
+
 /* ---- filters ---- */
 .filters {
   display: flex;

@@ -13,6 +13,9 @@
 **Live dashboard → https://prohori-fhir-case-registry.vercel.app** (reads
 Bangladesh's national FHIR sandbox directly). A case Bundle built by this project
 is **accepted by that sandbox** ([`docs/bd-core-submission.md`](docs/bd-core-submission.md)).
+**Live Implementation Guide → https://khalilurrrahmanridoykhan.github.io/prohori-fhir-case-registry/**
+— profiles, terminology, examples and a `CapabilityStatement`, built by the
+real HL7 IG Publisher ([`docs/publishing-the-ig.md`](docs/publishing-the-ig.md)).
 The .NET API deploys to Render from [`deploy/render.yaml`](deploy/render.yaml) —
 see [Deploy](#deploy-phase-g).
 
@@ -33,7 +36,7 @@ Bangladesh's national **[BD-Core-FHIR-IG](https://fhir.dghs.gov.bd/core/)**, the
 submitted to the live government sandbox.
 
 Diseases in scope: **dengue** (SNOMED `38362002` / ICD-10 `A90`), **malaria**
-(SNOMED `84058000`).
+(SNOMED `61462000`).
 
 ## Architecture
 
@@ -132,6 +135,26 @@ bash scripts/verify-measure.sh
 ```
 
 [Full write-up, the two "is a live CQL engine actually available" checks, and how the dashboard sources from it](docs/measures.md).
+
+## Publish the Implementation Guide (Phase N)
+
+**Live → https://khalilurrrahmanridoykhan.github.io/prohori-fhir-case-registry/**
+
+Four profiles (`ProhoriPatient`, `ProhoriEncounter`, `ProhoriObservation`,
+`ProhoriCondition`), a full cross-referenced example case, a
+`CapabilityStatement` for `Prohori.Api`, and the terminology/CQL/HL7v2
+artifacts from Phases K–M — all rendered by the real **HL7 IG Publisher**,
+not a hand-rolled substitute. Built and validated on every push; deployed to
+GitHub Pages on `main`.
+
+```bash
+mkdir -p ~/.fhir/ig-publisher
+curl -fsSL -o ~/.fhir/ig-publisher/publisher.jar \
+  "https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar"
+cd ig && java -jar ~/.fhir/ig-publisher/publisher.jar -ig ig.ini
+```
+
+[Full write-up, including a real security finding in the obvious `template:` choice](docs/publishing-the-ig.md).
 
 ## Build phases
 

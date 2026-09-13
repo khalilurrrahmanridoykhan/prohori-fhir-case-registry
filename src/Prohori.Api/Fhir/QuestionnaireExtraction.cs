@@ -44,7 +44,7 @@ public static class QuestionnaireExtraction
 
         var disease = DiseaseOf(byLinkId, QuestionnaireLinkIds.Disease);
         if (disease is null)
-            errors[QuestionnaireLinkIds.Disease] = ["Required: dengue (SNOMED 38362002) or malaria (SNOMED 84058000)."];
+            errors[QuestionnaireLinkIds.Disease] = ["Required: dengue (SNOMED 38362002) or malaria (SNOMED 61462000)."];
 
         var rdtResult = RdtResultOf(byLinkId, QuestionnaireLinkIds.RdtResult);
         if (rdtResult is null)
@@ -159,7 +159,7 @@ public static class QuestionnaireExtraction
     }
 
     private static Disease? DiseaseOf(IReadOnlyDictionary<string, QuestionnaireResponse.ItemComponent> items, string linkId) =>
-        CodeOf(items, linkId) switch { "38362002" => Disease.Dengue, "84058000" => Disease.Malaria, _ => null };
+        CodeOf(items, linkId) switch { "38362002" => Disease.Dengue, "61462000" => Disease.Malaria, _ => null };
 
     private static RdtResult? RdtResultOf(IReadOnlyDictionary<string, QuestionnaireResponse.ItemComponent> items, string linkId) =>
         CodeOf(items, linkId) switch { "10828004" => RdtResult.Positive, "260385009" => RdtResult.Negative, _ => null };

@@ -151,14 +151,14 @@ public static class BdCoreBundleBuilder
     private static (string Loinc, string Display) LoincFor(Disease d) => d switch
     {
         Disease.Dengue => ("42239-4", "Dengue virus NS1 Ag [Presence] in Serum or Plasma by Immunoassay"),
-        Disease.Malaria => ("70048-1", "Plasmodium sp Ag [Presence] in Blood by Rapid immunoassay"),
+        Disease.Malaria => ("70569-9", "Plasmodium sp Ag [Identifier] in Blood by Rapid immunoassay"),
         _ => throw new ArgumentOutOfRangeException(nameof(d), d, "Unknown disease"),
     };
 
     private static (string Code, string Display) SnomedFor(Disease d) => d switch
     {
         Disease.Dengue => ("38362002", "Dengue fever"),
-        Disease.Malaria => ("84058000", "Malaria"),
+        Disease.Malaria => ("61462000", "Malaria"),
         _ => throw new ArgumentOutOfRangeException(nameof(d), d, "Unknown disease"),
     };
 }

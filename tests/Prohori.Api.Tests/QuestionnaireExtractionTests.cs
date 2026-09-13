@@ -37,7 +37,7 @@ public class QuestionnaireExtractionTests
                     ],
                 },
                 Answer(QuestionnaireLinkIds.Disease, new Coding(Systems.Snomed,
-                    disease == Disease.Dengue ? "38362002" : "84058000")),
+                    disease == Disease.Dengue ? "38362002" : "61462000")),
                 Answer(QuestionnaireLinkIds.RdtResult, new Coding(Systems.Snomed,
                     result == RdtResult.Positive ? "10828004" : "260385009")),
                 Answer(QuestionnaireLinkIds.VisitDate, new FhirDateTime("2026-08-14T09:20:00+06:00")),
@@ -65,7 +65,7 @@ public class QuestionnaireExtractionTests
 
     [Theory]
     [InlineData(Disease.Dengue, "38362002")]
-    [InlineData(Disease.Malaria, "84058000")]
+    [InlineData(Disease.Malaria, "61462000")]
     public void Disease_is_read_back_from_its_SNOMED_answer_coding(Disease disease, string code)
     {
         var submission = QuestionnaireExtraction.Extract(Valid(disease));

@@ -1,5 +1,104 @@
 # Decisions
 
+## 2026-09-13 — Phase N, finding (malaria SNOMED/LOINC codes were wrong since Phase C)
+
+- The IG Publisher's routine validation of `ProhoriDiagnosisValueSet` /
+  `ProhoriRdtTestValueSet` (against live `tx.fhir.org`) surfaced two codes
+  that don't exist: SNOMED `84058000` and LOINC `70048-1`, both used for
+  "malaria" since `CaseBundleBuilder` was first written in Phase C. Confirmed
+  independently via `$lookup`/`$expand`, not just the publisher's say-so.
+  Correct codes: SNOMED **`61462000`** ("Malaria"), LOINC **`70569-9`**
+  ("Plasmodium sp Ag [Identifier] in Blood by Rapid immunoassay" — the
+  "[Presence] ... by Rapid immunoassay" combination this project used was
+  never a real LOINC code+display pairing). Dengue's codes were already
+  independently verified — accepted by the live DGHS sandbox in Phase F;
+  malaria's never were, because nothing before this phase's live terminology
+  validation checked a coded element's value against a real server.
+- Fixed everywhere: `CaseBundleBuilder.cs`, `BdCoreBundleBuilder.cs`,
+  `QuestionnaireCatalog.cs`/`QuestionnaireExtraction.cs`,
+  `web/src/fhir/terminology.ts`, `Prohori.BulkClient/Snapshot.cs`,
+  `seed-cohort.py`, this IG's ValueSets, and every test pinning the old
+  values. **Not fixed**: malaria cases already seeded onto the live DGHS
+  sandbox by earlier `seed-cohort.py` runs still carry the old codes —
+  re-seeding a live government sandbox wasn't done as a side effect of a
+  code-correctness finding; new runs write the correct codes.
+- See docs/publishing-the-ig.md for the full write-up.
+
+## 2026-09-13 — Phase N (Publish a real Implementation Guide)
+
+- **Actually ran the real HL7 IG Publisher** (`publisher.jar`, ~250MB, cached
+  at `~/.fhir/ig-publisher/`) rather than hand-rolling a substitute — unlike
+  matchbox (Phase L) and a live CQL engine (Phase M), the publisher genuinely
+  downloaded and ran cleanly, so there was no reason to fall back to a
+  documented-but-unexecuted artifact this time.
+- **Finding, caught before the first successful build**: the obvious
+  `template: fhir.base.template#current` (what most SUSHI tutorials still
+  show) is a known-insecure package name — a security researcher registered a
+  malicious package under that exact name on plain npm, exploitable by
+  tooling that resolves FHIR package dependencies unsafely. HL7's own fix,
+  `fhir2.base.template`, is what `ig/ig.ini` actually uses. See
+  docs/publishing-the-ig.md.
+- **`template:` moved out of `sushi-config.yaml` into `ig/ig.ini`** — current
+  SUSHI (3.20.1) no longer accepts the config key there at all (a deliberate
+  SUSHI/IG-Publisher separation), and says so directly; followed its own
+  error message rather than an outdated tutorial.
+- **Two more profiles** (`ProhoriEncounter`, `ProhoriCondition`, alongside
+  Phase E/K's `ProhoriPatient`/`ProhoriObservation`) — `ProhoriCondition.code`
+  gets a new `required` binding to a `ProhoriDiagnosisValueSet` (the same two
+  SNOMED codes `CaseBundleBuilder` already writes), extending Phase K's
+  terminology story rather than starting a new one.
+- **`ProhoriCapabilityStatement` describes `Prohori.Api`**, not the underlying
+  FHIR server — it's a specialized write facade (Bundle-building endpoints +
+  one measure evaluation), not a general-purpose FHIR server, and the
+  CapabilityStatement says so in its own `rest.documentation` rather than
+  implying a conformance shape the code doesn't have. Operation entries
+  reference the real SDC/base-FHIR `OperationDefinition` canonicals.
+- **CI builds the IG on every push and PR** (a broken example or profile
+  fails CI, same as a broken test) **and deploys to GitHub Pages only on
+  `main`** — enabled via `gh api POST .../pages` with `build_type: workflow`
+  rather than the web UI. Both the publisher jar and the FHIR package cache
+  are cached (`actions/cache`) — the cold-run cost (~250MB + several package
+  downloads) is real and worth avoiding on every push.
+- **The IG Publisher job stays on the default live `tx.fhir.org`**, unlike
+  `validate-ig.sh`'s `-tx n/a` (Phase K). Tested both: `-tx n/a` can't expand
+  this IG's own SNOMED-based ValueSets at all ("No server available", a
+  harder failure than a skipped binding check); the live run completes in
+  under two minutes and is what actually caught the malaria code finding
+  above. Different tool, different trade-off, not a blanket rule.
+- **`ConceptMap.sourceUri` must be a ValueSet, not a CodeSystem**
+  (`CONCEPTMAP_VS_NOT_A_VS`) — an R4 modeling rule the original Phase K
+  ConceptMap didn't satisfy (it pointed straight at the CodeSystem).
+  `group.source`/`group.target`, which the actual `$translate` match happens
+  against, were always correct. Added one small ValueSet
+  (`ProhoriRdtResultLegacyValueSet`) and switched to `sourceCanonical`.
+- **No `targetCanonical`, deliberately** — pointing it at
+  `ProhoriRdtResultValueSet` (SNOMED-sourced) satisfied the IG Publisher but
+  broke loading the ConceptMap onto local HAPI at all: its write-time
+  validator tries to confirm the target codes are real SNOMED concepts
+  against a live terminology service it has none configured for, and rejects
+  the whole resource with a 422 — even though `$expand` independently proves
+  the ValueSet is correct (caught by re-running `scripts/load-terminology.sh`
+  after this phase's ConceptMap change, which is exactly what it's for).
+  `target[x]` is optional (0..1); omitting it sidesteps a real local-HAPI
+  limitation instead of pretending it isn't there. The IG Publisher's
+  complaint was about `source`, not `target` — confirmed by rebuilding the
+  full site after removing it: still exactly the same 5 known errors.
+- **`hl7.fhir.uv.sdc` added as a real package dependency** so
+  `ProhoriCapabilityStatement`'s `$extract`/`$populate` operation
+  definitions resolve to HL7's actual SDC IG canonicals, rather than
+  dropping the (required, once `operation[]` is used) `.definition` field.
+- **Tried `path-suppressed-warnings` to quiet the known `CQL_NO_ELM` errors
+  in `qa.html`, reverted it.** The parameter exists (confirmed in HL7's own
+  `ig-parameters` CodeSystem) but the file format it now expects isn't the
+  one-message-per-line scheme its own description states — the publisher
+  rejected the file as "not using the new format" without documenting what
+  the new one is. Chasing an underdocumented cosmetic fix wasn't worth it:
+  the four errors are exactly Phase M's already-documented, already-explained
+  finding, left visible in `qa.html` rather than hidden behind a mechanism
+  that didn't actually work as specified.
+- Preserve implementation history with a merge commit and tag `phase-n`, same
+  ritual as every prior phase.
+
 ## 2026-09-13 — Phase M (CQL, Measure & MeasureReport)
 
 - **Checked whether a live CQL engine was reachable before building around one — twice.**

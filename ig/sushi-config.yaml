@@ -3,8 +3,12 @@ canonical: https://prohori.health/fhir
 name: ProhoriCore
 title: "Prohori Core — FHIR profiles for the field case registry"
 description: >-
-  Conformance profiles the Prohori registry enforces on submitted resources.
-  A learning build in the spirit of Bangladesh's BD-Core-FHIR-IG.
+  Conformance profiles the Prohori registry enforces on submitted resources,
+  a real HL7 v2 mapping, a computable quality measure, and this server's
+  CapabilityStatement. A learning build in the spirit of Bangladesh's
+  BD-Core-FHIR-IG. Source, decisions and verification scripts:
+  https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry
+
 status: draft
 version: 0.1.0
 fhirVersion: 4.0.1
@@ -14,7 +18,29 @@ license: Apache-2.0
 publisher:
   name: Khalilur Rahman Ridoy Khan
   url: https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry
+contact:
+  - name: Khalilur Rahman Ridoy Khan
+    telecom:
+      - system: url
+        value: https://github.com/khalilurrrahmanridoykhan/prohori-fhir-case-registry
+jurisdiction: urn:iso:std:iso:3166#BD "Bangladesh"
 
-# Generate FHIR artifacts only — no IG Publisher / HTML site in this phase.
-FSHOnly: true
+# Phase N: a real published IG — HTML site via the HL7 IG Publisher, not just FSH-generated
+# JSON. The template lives in ig.ini (newer SUSHI no longer accepts it here).
+
+# So ProhoriCapabilityStatement's $extract/$populate operation.definition canonicals
+# (real HL7 SDC IG operations, required whenever operation[] is used at all) actually resolve.
+dependencies:
+  hl7.fhir.uv.sdc: 3.0.0
+
+parameters:
+  logging: progress
+
+menu:
+  Home: index.html
+  Architecture: architecture.html
+  Phases A-P: phases.html
+  Artifacts Summary: artifacts.html
+  Downloads: downloads.html
+
 applyExtensionMetadataToRoot: false

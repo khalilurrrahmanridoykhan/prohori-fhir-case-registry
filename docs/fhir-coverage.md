@@ -12,6 +12,6 @@
 | Terminology services | K implemented — [$expand/$validate-code/$translate live against HAPI; fixes BD-Core's empty ICD-11 ValueSet](terminology.md) |
 | HL7 v2, StructureMap | L implemented — [Prohori.V2Gateway: ADT admit/update/discharge, FML authored not executed](hl7v2-to-fhir.md) |
 | CQL, Measure, MeasureReport | M implemented — [$evaluate-measure-shaped endpoint, verified live against the known demo cohort](measures.md) |
-| IG Publisher and CapabilityStatement | N planned |
+| IG Publisher and CapabilityStatement | N implemented — [4 profiles, real IG Publisher build, live on GitHub Pages](publishing-the-ig.md) |
 | Subscriptions, audit, consent | O planned |
 | Certification and portfolio consolidation | P planned |

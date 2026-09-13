@@ -71,7 +71,7 @@ public static class Snapshot
         var resources = input.ToArray();
         var patients = resources.OfType<Patient>().ToDictionary(p => "Patient/" + p.Id, StringComparer.Ordinal);
         var observations = resources.OfType<Observation>().Where(o => o.Code?.Coding.Any(c =>
-            c.System == "http://loinc.org" && c.Code is "42239-4" or "70048-1") == true).ToArray();
+            c.System == "http://loinc.org" && c.Code is "42239-4" or "70569-9") == true).ToArray();
         var rows = observations.Select(o =>
         {
             var patient = o.Subject?.Reference != null ? patients.GetValueOrDefault(o.Subject.Reference) : null;

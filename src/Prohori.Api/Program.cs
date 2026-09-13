@@ -43,6 +43,7 @@ builder.Services.AddScoped(_ => new FhirClient(fhirBaseUrl, new FhirClientSettin
 }));
 builder.Services.AddScoped<FhirCaseService>();
 builder.Services.AddScoped<TerminologyClient>();
+builder.Services.AddScoped<MeasureEvaluator>();
 builder.Services.AddHttpClient("fhir", client => client.BaseAddress = new Uri(fhirBaseUrl.TrimEnd('/') + "/"))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
@@ -132,6 +133,7 @@ app.MapLocalSmart();
 app.MapBulk();
 app.MapQuestionnaire();
 app.MapLegacyImport();
+app.MapMeasure();
 
 app.Run();
 

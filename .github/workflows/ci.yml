@@ -186,6 +186,33 @@ jobs:
         if: always()
         run: docker compose -f deploy/docker-compose.yml down -v
 
+  measure:
+    name: Measure — seed cohort + evaluate over two periods
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Start local HAPI
+        run: docker compose -f deploy/docker-compose.yml up -d hapi
+      - name: Wait for HAPI
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/fhir/metadata || echo 000)
+            [ "$code" = "200" ] && exit 0
+            sleep 3
+          done
+          echo "HAPI never became ready" >&2; exit 1
+      - name: Seed the demo cohort and evaluate the measure over two periods
+        run: bash scripts/verify-measure.sh
+      - name: Container diagnostics on failure
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs hapi --tail 100
+      - name: Stop local HAPI
+        if: always()
+        run: docker compose -f deploy/docker-compose.yml down -v
+
   integration:
     name: integration tests (sandbox, non-blocking)
     runs-on: ubuntu-latest

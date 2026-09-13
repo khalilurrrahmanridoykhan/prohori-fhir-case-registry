@@ -1,4 +1,5 @@
 import type { CaseRow } from "../fhir/cases";
+import { useMeasureReport } from "../measure/api";
 
 const DAY = 86_400_000;
 
@@ -15,6 +16,13 @@ export function SummaryTiles({ cases }: { cases: CaseRow[] }) {
 
   const dengue = cases.filter((c) => c.disease === "dengue").length;
   const malaria = cases.filter((c) => c.disease === "malaria").length;
+
+  // The full span of visits currently in view, for $evaluate-measure — a period, not the
+  // disease/result/city filters above, which the measure (deliberately) doesn't know about.
+  const dates = cases.map((c) => c.visitDate.slice(0, 10)).filter(Boolean).sort();
+  const periodStart = dates[0];
+  const periodEnd = dates[dates.length - 1];
+  const { data: measure, isSuccess } = useMeasureReport(periodStart, periodEnd);
 
   return (
     <section className="tiles" aria-label="Summary">
@@ -44,6 +52,17 @@ export function SummaryTiles({ cases }: { cases: CaseRow[] }) {
           {cases.filter((c) => c.disease === "malaria" && c.result === "positive").length} confirmed
         </div>
       </div>
+      {isSuccess && (
+        <div className="tile tile--measure">
+          <div className="tile__label">$evaluate-measure</div>
+          <div className="tile__value">
+            {measure.numerator}/{measure.denominator}
+          </div>
+          <div className="tile__sub">
+            computed server-side, {periodStart} – {periodEnd}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -23,7 +23,13 @@ public static class Sample
         VisitDate = new DateTimeOffset(2026, 8, 14, 9, 20, 0, TimeSpan.FromHours(6)),
     };
 
-    /// <summary>A National ID unique to this test run (dodges HAPI-2840 duplicate rejection).</summary>
+    private static long _sequence;
+
+    /// <summary>A National ID unique to this test run (dodges HAPI-2840 duplicate rejection).
+    /// A millisecond timestamp alone collided once two integration test classes started
+    /// exercising the shared public sandbox in parallel (xUnit runs different test classes
+    /// concurrently by default) — the trailing counter is what actually guarantees uniqueness;
+    /// the timestamp just keeps ids roughly sortable. 17 digits, within the 10-17 digit max.</summary>
     public static string FreshNationalId() =>
-        "19" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); // 15 digits
+        "19" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (Interlocked.Increment(ref _sequence) % 100).ToString("D2");
 }

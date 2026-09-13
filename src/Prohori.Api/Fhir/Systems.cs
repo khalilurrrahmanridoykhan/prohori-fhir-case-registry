@@ -11,6 +11,7 @@ public static class Systems
     public const string ConditionClinical = "http://terminology.hl7.org/CodeSystem/condition-clinical";
     public const string ConditionVerStatus = "http://terminology.hl7.org/CodeSystem/condition-ver-status";
     public const string ActCode = "http://terminology.hl7.org/CodeSystem/v3-ActCode";
+    public const string MeasurePopulation = "http://terminology.hl7.org/CodeSystem/measure-population";
 
     /// <summary>Tag written on every resource so the cohort is findable on a shared server.</summary>
     public const string ProhoriTag = "urn:prohori";

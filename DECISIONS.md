@@ -65,13 +65,24 @@
   harder failure than a skipped binding check); the live run completes in
   under two minutes and is what actually caught the malaria code finding
   above. Different tool, different trade-off, not a blanket rule.
-- **`ConceptMap.sourceUri`/`targetUri` must be ValueSets, not CodeSystems**
+- **`ConceptMap.sourceUri` must be a ValueSet, not a CodeSystem**
   (`CONCEPTMAP_VS_NOT_A_VS`) — an R4 modeling rule the original Phase K
-  ConceptMap didn't satisfy (it pointed straight at the CodeSystems).
+  ConceptMap didn't satisfy (it pointed straight at the CodeSystem).
   `group.source`/`group.target`, which the actual `$translate` match happens
   against, were always correct. Added one small ValueSet
-  (`ProhoriRdtResultLegacyValueSet`) and switched to `sourceCanonical`/
-  `targetCanonical`, reusing `ProhoriRdtResultValueSet` as the target.
+  (`ProhoriRdtResultLegacyValueSet`) and switched to `sourceCanonical`.
+- **No `targetCanonical`, deliberately** — pointing it at
+  `ProhoriRdtResultValueSet` (SNOMED-sourced) satisfied the IG Publisher but
+  broke loading the ConceptMap onto local HAPI at all: its write-time
+  validator tries to confirm the target codes are real SNOMED concepts
+  against a live terminology service it has none configured for, and rejects
+  the whole resource with a 422 — even though `$expand` independently proves
+  the ValueSet is correct (caught by re-running `scripts/load-terminology.sh`
+  after this phase's ConceptMap change, which is exactly what it's for).
+  `target[x]` is optional (0..1); omitting it sidesteps a real local-HAPI
+  limitation instead of pretending it isn't there. The IG Publisher's
+  complaint was about `source`, not `target` — confirmed by rebuilding the
+  full site after removing it: still exactly the same 5 known errors.
 - **`hl7.fhir.uv.sdc` added as a real package dependency** so
   `ProhoriCapabilityStatement`'s `$extract`/`$populate` operation
   definitions resolve to HL7's actual SDC IG canonicals, rather than

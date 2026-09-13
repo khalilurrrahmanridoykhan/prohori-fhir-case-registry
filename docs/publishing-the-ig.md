@@ -133,12 +133,18 @@ step.
   (`RESOURCE_ID_MISMATCH`) — a real FHIR convention this project hadn't
   needed to satisfy before Phase N generated resources with hand-picked,
   independent `url`s and instance names.
-- **`ConceptMap.sourceUri`/`targetUri` pointed at CodeSystems, not
-  ValueSets** (`CONCEPTMAP_VS_NOT_A_VS`) — R4's actual modeling rule.
-  `group.source`/`group.target` (the CodeSystems `$translate` matches codes
-  against) were always correct; only the top-level `source[x]`/`target[x]`
-  needed to become `sourceCanonical`/`targetCanonical` referencing two small
-  ValueSets (one new: `ProhoriRdtResultLegacyValueSet`).
+- **`ConceptMap.sourceUri` pointed at a CodeSystem, not a ValueSet**
+  (`CONCEPTMAP_VS_NOT_A_VS`) — R4's actual modeling rule. `group.source`/
+  `group.target` (the CodeSystems `$translate` matches codes against) were
+  always correct; only `source[x]` needed to become `sourceCanonical`,
+  referencing a new small ValueSet (`ProhoriRdtResultLegacyValueSet`). No
+  `targetCanonical`, deliberately: pointing it at the SNOMED-sourced
+  `ProhoriRdtResultValueSet` satisfied the IG Publisher but broke loading the
+  ConceptMap onto local HAPI — its write-time validator can't confirm SNOMED
+  codes without a live terminology service it isn't configured with, and
+  rejects the whole resource with a 422 (caught by re-running
+  `scripts/load-terminology.sh`, the exact regression check it exists for).
+  `target[x]` is optional; omitting it is the honest fix, not a workaround.
 - **`CapabilityStatement.kind = instance` requires `implementation`** —
   added `implementation.description`/`.url`.
 - **Two resources shared a title** ("Prohori RDT Result (legacy ODK codes)")

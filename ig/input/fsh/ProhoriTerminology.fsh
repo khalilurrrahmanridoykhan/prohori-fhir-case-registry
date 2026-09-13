@@ -73,11 +73,17 @@ Title: "Legacy RDT result codes → SNOMED CT"
 Description: "Translates a legacy ODK export's plain-language RDT result codes to SNOMED CT, via $translate."
 * url = "https://prohori.health/fhir/ConceptMap/prohori-rdt-result-legacy-to-snomed"
 * status = #draft
-// sourceCanonical/targetCanonical must reference ValueSets, not CodeSystems directly (an R4
-// modeling rule the IG Publisher enforces) — group.source/group.target below are the actual
-// CodeSystem URIs $translate matches codes against.
+// sourceCanonical must reference a ValueSet, not a CodeSystem directly (an R4 modeling rule
+// the IG Publisher enforces) — group.source/group.target below are the actual CodeSystem
+// URIs $translate matches codes against, unaffected by this.
+//
+// No targetCanonical: pointing it at ProhoriRdtResultValueSet (SNOMED-sourced) makes local
+// HAPI's write-time validator try to confirm those SNOMED codes are real against a live
+// terminology service it has none configured for, rejecting the whole ConceptMap with a
+// 422 ("not valid in the value set") even though $expand proves the ValueSet is correct.
+// target[x] is optional (0..1) — omitting it sidesteps a real HAPI limitation rather than
+// papering over it.
 * sourceCanonical = "https://prohori.health/fhir/ValueSet/prohori-rdt-result-legacy-valueset"
-* targetCanonical = "https://prohori.health/fhir/ValueSet/prohori-rdt-result-valueset"
 * group[0].source = "https://prohori.health/fhir/CodeSystem/prohori-rdt-result-legacy"
 * group[0].target = "http://snomed.info/sct"
 * group[0].element[0].code = #pos

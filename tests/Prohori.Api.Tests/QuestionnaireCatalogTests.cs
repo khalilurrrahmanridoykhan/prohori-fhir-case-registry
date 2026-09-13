@@ -38,7 +38,7 @@ public class QuestionnaireCatalogTests
         var item = Flatten(QuestionnaireCatalog.Build().Item).Single(i => i.LinkId == QuestionnaireLinkIds.Disease);
 
         var codes = item.AnswerOption.Select(o => ((Coding)o.Value).Code).ToArray();
-        codes.ShouldBe(["38362002", "84058000"]);
+        codes.ShouldBe(["38362002", "61462000"]);
     }
 
     [Fact]

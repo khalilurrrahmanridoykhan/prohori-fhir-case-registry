@@ -72,7 +72,7 @@ public class CaseBundleBuilderTests
 
     [Theory]
     [InlineData(Disease.Dengue, "42239-4")]
-    [InlineData(Disease.Malaria, "70048-1")]
+    [InlineData(Disease.Malaria, "70569-9")]
     public void Observation_uses_the_right_LOINC_code_for_the_disease(Disease disease, string expectedLoinc)
     {
         var bundle = CaseBundleBuilder.Build(Sample.Case(disease));

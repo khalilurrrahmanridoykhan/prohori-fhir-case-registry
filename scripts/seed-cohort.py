@@ -35,11 +35,11 @@ ENC_CLASS = "http://terminology.hl7.org/CodeSystem/v3-ActCode"
 
 TESTS = {
     "dengue":  {"code": "42239-4", "display": "Dengue virus NS1 Ag [Presence] in Serum or Plasma by Immunoassay"},
-    "malaria": {"code": "70048-1", "display": "Plasmodium sp Ag [Presence] in Blood by Rapid immunoassay"},
+    "malaria": {"code": "70569-9", "display": "Plasmodium sp Ag [Identifier] in Blood by Rapid immunoassay"},
 }
 DX = {
     "dengue":  {"sct": ("38362002", "Dengue fever"),   "icd": ("A90", "Dengue fever [classical dengue]")},
-    "malaria": {"sct": ("84058000", "Malaria"),         "icd": ("B54", "Unspecified malaria")},
+    "malaria": {"sct": ("61462000", "Malaria"),         "icd": ("B54", "Unspecified malaria")},
 }
 
 # name, gender, birthDate, city, district, disease, positive?, visitDate

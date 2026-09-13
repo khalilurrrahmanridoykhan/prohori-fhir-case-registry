@@ -8,7 +8,7 @@ export const SNOMED = "http://snomed.info/sct";
 
 const LOINC_DISEASE: Record<string, Disease> = {
   "42239-4": "dengue", // Dengue virus NS1 Ag
-  "70048-1": "malaria", // Plasmodium sp Ag, rapid immunoassay
+  "70569-9": "malaria", // Plasmodium sp Ag, rapid immunoassay
 };
 
 const SNOMED_RESULT: Record<string, Result> = {

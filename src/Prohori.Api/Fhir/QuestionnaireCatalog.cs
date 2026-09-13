@@ -84,7 +84,7 @@ public static class QuestionnaireCatalog
                 AnswerOption =
                 [
                     AnswerCoding(Systems.Snomed, "38362002", "Dengue fever"),
-                    AnswerCoding(Systems.Snomed, "84058000", "Malaria"),
+                    AnswerCoding(Systems.Snomed, "61462000", "Malaria"),
                 ],
             },
             new Questionnaire.ItemComponent

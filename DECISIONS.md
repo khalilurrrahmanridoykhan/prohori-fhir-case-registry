@@ -1,5 +1,41 @@
 # Decisions
 
+## 2026-09-13 — Phase M (CQL, Measure & MeasureReport)
+
+- **Checked whether a live CQL engine was reachable before building around one — twice.**
+  Enabled local HAPI's clinical-reasoning module (`hapi.fhir.cr.enabled: true`); its boot log
+  shows `MeasureOperationsProvider` genuinely loading, but `Measure/$evaluate-measure` still
+  returns "does not know how to handle [this] operation" — the provider needs a configured CQL
+  execution `Repository` this Docker image doesn't wire up by default. Reverted the config
+  change (it bought `Library/$package` and `Measure/$data-requirements`, neither used this
+  phase) rather than leave an unexplained deploy diff. Second check: validating the Measure and
+  a content-bearing Library together reports "No compiled version of CQL found" — the validator
+  wants CQL translated to ELM (`cql-to-elm`, a separate tool), not just raw text. Same category
+  of finding as Phase K's `-tx n/a` and Phase L's `$transform`: the static tooling's semantic
+  checks need infrastructure beyond structural FHIR validation that wasn't worth standing up
+  blind for one phase. `MeasureEvaluator.cs` computes the declared populations by hand instead —
+  documented, not glossed over.
+- **No `validate-measure` CI job** (unlike Questionnaire/Terminology) — the "No compiled CQL"
+  and offline-MIME-type findings above mean validator_cli can't cleanly pass these resources
+  without infrastructure this phase doesn't have. `scripts/verify-measure.sh`'s live, numeric
+  proof against the known demo cohort is the stronger evidence anyway.
+- **CQL kept as a plain, reviewable `.cql` file** (`ig/input/cql/ProhoriDiseasePositivity.cql`),
+  *and* embedded as `Library.content[0]` (`text/cql`, base64) — both, not a choice between them:
+  the file is what a person reviews; the embedded copy is the real, standard FHIR Clinical
+  Reasoning packaging a consuming system would expect. Kept in sync by hand (one short file).
+- **Stratified by city**, not division — the actual `PatientInput`/`CaseBundleBuilder` data model
+  has `City`/`District`, not BD-Core's division geocodes (those exist only in the separate
+  `BdCoreBundleBuilder` path). City is also what the dashboard's own filters already use.
+- **Dashboard: additive, not replacing.** `SummaryTiles` gets a 5th tile sourced from
+  `$evaluate-measure` over the visible cases' date span, shown only on success — the four
+  existing (client-computed, filter-aware) tiles are untouched, since the measure endpoint has
+  no notion of the dashboard's disease/result/city filters and conflating the two would risk
+  showing numbers that quietly don't agree. On the live Vercel dashboard (no backend), the tile
+  just doesn't render — no error state, same graceful-degradation contract as every other
+  phase's local-only feature.
+- Preserve implementation history with a merge commit and tag `phase-m`, same ritual as every
+  prior phase.
+
 ## 2026-09-13 — Phase L (HL7 v2 → FHIR)
 
 - **`Prohori.V2Gateway` is its own project and its own test project**, not folded into

@@ -116,6 +116,23 @@ bash scripts/verify-v2-gateway.sh
 
 [Segment → resource map, the idempotency rule, and why the StructureMap is authored but not executed via a live $transform](docs/hl7v2-to-fhir.md).
 
+## CQL, Measure & MeasureReport (Phase M)
+
+The dashboard's positivity tiles stop being browser arithmetic: a declared
+CQL `Library` + `Measure` (field visits in a period; of those, how many were
+RDT-positive; stratified by city) evaluated server-side into a real
+`MeasureReport`. Checked twice whether a live CQL engine was actually
+reachable (local HAPI's clinical-reasoning module, then the offline
+validator's CQL↔ELM check) before deciding to compute the declared
+populations in C# instead — see the write-up for both findings.
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d hapi
+bash scripts/verify-measure.sh
+```
+
+[Full write-up, the two "is a live CQL engine actually available" checks, and how the dashboard sources from it](docs/measures.md).
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -132,6 +149,7 @@ bash scripts/verify-v2-gateway.sh
 | **J** | Questionnaire, SDC `$populate` / `$extract`, generic form renderer | Implemented — [field map and design notes](docs/sdc.md) |
 | **K** | Terminology — `$expand`/`$validate-code`/`$translate`, fixes BD-Core's empty ICD-11 ValueSet | Implemented — [write-up](docs/terminology.md) |
 | **L** | HL7 v2 → FHIR — `Prohori.V2Gateway`, ADT admit/update/discharge | Implemented — [write-up](docs/hl7v2-to-fhir.md) |
+| **M** | CQL, Measure & MeasureReport — `$evaluate-measure`-shaped endpoint, dashboard sourced from it | Implemented — [write-up](docs/measures.md) |
 
 ## Repository layout
 
@@ -146,16 +164,19 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/BdCore*             BD-Core-FHIR-IG bundle builder (Phase F) — POST /bd-core/cases
   Fhir/Questionnaire*      Questionnaire catalog + $populate/$extract (Phase J)
   Fhir/Terminology*, LegacyImport*  $translate client + legacy-import endpoint (Phase K)
+  Fhir/Measure*             MeasureReportBuilder (pure) + MeasureEvaluator + GET /measure/$evaluate-measure (Phase M)
 tests/Prohori.Api.Tests/  xUnit — unit + integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology/V2Gateway validate, integration
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology/V2Gateway/Measure validate, integration
 src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
 src/Prohori.V2Gateway/  ADT parser (NHapi) + PID/PV1 -> FHIR mapper + POST /adt (Phase L)
 tests/Prohori.V2Gateway.Tests/  its own project — a bare Program class collides with Prohori.Api's
 web/                   React 19 + Vite + TS dashboard (Phase D)
   src/questionnaire/       generic Questionnaire form renderer + $populate/$extract client (Phase J)
   src/pages/NewCase.tsx    the field-intake page
+  src/measure/api.ts       useMeasureReport() — sources SummaryTiles' 5th tile (Phase M)
 ig/                    FHIR Shorthand — ProhoriPatient (E), ProhoriObservation + terminology (K); SUSHI-generated output is gitignored
   input/maps/hl7v2-to-fhir.map  FHIR Mapping Language (Phase L) — declared, not executed; see docs/hl7v2-to-fhir.md
+  input/cql/*.cql            CQL (Phase M) — declared, embedded in the Library, not run by a live engine; see docs/measures.md
 deploy/                docker-compose (HAPI + Postgres) — Phase E; render.yaml — Phase G
 ```
 
@@ -307,6 +328,7 @@ Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
 | J | .NET 8 SDK, Node 22+, Java 11+ (`validator_cli.jar`) — a SMART launch for `$populate`/`$extract` |
 | K | Docker or Colima (local HAPI), Node + `fsh-sushi`, Java 11+ (`validator_cli.jar`) |
 | L | .NET 8 SDK, Docker or Colima (local HAPI) |
+| M | .NET 8 SDK, Node 22+, Docker or Colima (local HAPI) |
 
 ## Phase-by-phase
 

@@ -15,7 +15,7 @@ below):
 | :--- | :--- | :--- |
 | `CodeSystem` | `prohori-rdt-result-legacy` | The plain `pos`/`neg` codes a legacy ODK/KoBo export uses, before anything is SNOMED-coded. |
 | `ValueSet` | `prohori-rdt-result-valueset` | SNOMED CT `10828004`/`260385009` — binds `ProhoriObservation.valueCodeableConcept`. |
-| `ValueSet` | `prohori-rdt-test-valueset` | LOINC `42239-4`/`70048-1` — binds `ProhoriObservation.code`. |
+| `ValueSet` | `prohori-rdt-test-valueset` | LOINC `42239-4`/`70569-9` — binds `ProhoriObservation.code`. |
 | `ValueSet` | `bd-condition-icd11-diagnosis-valueset-fixed` | ICD-11 MMS `1D40`/`1F4Z` — the fix for BD-Core's empty ValueSet, see below. |
 | `ConceptMap` | `prohori-rdt-result-legacy-to-snomed` | `pos → 10828004`, `neg → 260385009`. Called via `$translate`. |
 

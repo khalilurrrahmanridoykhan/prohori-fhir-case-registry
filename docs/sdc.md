@@ -40,7 +40,7 @@ into agreement with each other and still be wrong).
 | `patient.birthDate` | date | `Patient.BirthDate` | `Patient.birthDate` |
 | `patient.city` | string | `Patient.City` | `Patient.address.city` |
 | `patient.district` | string | `Patient.District` | `Patient.address.district` |
-| `disease` | choice, SNOMED (38362002 dengue / 84058000 malaria) | `Disease` | `Observation.code` (LOINC, via `CaseBundleBuilder.TestFor`) |
+| `disease` | choice, SNOMED (38362002 dengue / 61462000 malaria) | `Disease` | `Observation.code` (LOINC, via `CaseBundleBuilder.TestFor`) |
 | `rdtResult` | choice, SNOMED (10828004 positive / 260385009 negative) | `RdtResult` | `Observation.valueCodeableConcept` |
 | `visitDate` | dateTime | `VisitDate` | `Encounter.period`, `Observation.effective` |
 | `diagnosisNote` | string, `enableWhen rdtResult = positive` | *(not extracted — a note, not a coded fact)* | — |

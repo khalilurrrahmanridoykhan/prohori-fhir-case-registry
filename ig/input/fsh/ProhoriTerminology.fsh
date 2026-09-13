@@ -1,4 +1,13 @@
 // Phase K — terminology artifacts. See docs/terminology.md.
+// ProhoriDiagnosisValueSet added in Phase N, binding ProhoriCondition.code.
+
+ValueSet: ProhoriDiagnosisValueSet
+Id: prohori-diagnosis-valueset
+Title: "Prohori Diagnosis (SNOMED CT)"
+Description: "The two diseases Prohori tracks, coded — binds ProhoriCondition.code."
+* ^status = #draft
+* http://snomed.info/sct#38362002 "Dengue fever"
+* http://snomed.info/sct#61462000 "Malaria"
 
 CodeSystem: ProhoriRdtResultLegacy
 Id: prohori-rdt-result-legacy
@@ -15,6 +24,13 @@ rapid-test result, before anything is coded to SNOMED CT. Fed through
 * #pos "Positive (legacy ODK code)"
 * #neg "Negative (legacy ODK code)"
 
+ValueSet: ProhoriRdtResultLegacyValueSet
+Id: prohori-rdt-result-legacy-valueset
+Title: "Prohori RDT Result (legacy ODK codes) — ValueSet"
+Description: "Both codes from ProhoriRdtResultLegacy — ConceptMap.sourceCanonical must be a ValueSet, not a CodeSystem directly (R4 modeling rule), so this exists purely to satisfy that."
+* ^status = #draft
+* include codes from system ProhoriRdtResultLegacy
+
 ValueSet: ProhoriRdtResultValueSet
 Id: prohori-rdt-result-valueset
 Title: "Prohori RDT Result (SNOMED CT)"
@@ -29,7 +45,7 @@ Title: "Prohori RDT Test (LOINC)"
 Description: "The two LOINC test codes Prohori's Observation.code binds to."
 * ^status = #draft
 * http://loinc.org#42239-4 "Dengue virus NS1 Ag [Presence] in Serum or Plasma by Immunoassay"
-* http://loinc.org#70048-1 "Plasmodium sp Ag [Presence] in Blood by Rapid immunoassay"
+* http://loinc.org#70569-9 "Plasmodium sp Ag [Identifier] in Blood by Rapid immunoassay"
 
 ValueSet: BdConditionIcd11DiagnosisValueSetFixed
 Id: bd-condition-icd11-diagnosis-valueset-fixed
@@ -57,8 +73,11 @@ Title: "Legacy RDT result codes → SNOMED CT"
 Description: "Translates a legacy ODK export's plain-language RDT result codes to SNOMED CT, via $translate."
 * url = "https://prohori.health/fhir/ConceptMap/prohori-rdt-result-legacy-to-snomed"
 * status = #draft
-* sourceUri = "https://prohori.health/fhir/CodeSystem/prohori-rdt-result-legacy"
-* targetUri = "http://snomed.info/sct"
+// sourceCanonical/targetCanonical must reference ValueSets, not CodeSystems directly (an R4
+// modeling rule the IG Publisher enforces) — group.source/group.target below are the actual
+// CodeSystem URIs $translate matches codes against.
+* sourceCanonical = "https://prohori.health/fhir/ValueSet/prohori-rdt-result-legacy-valueset"
+* targetCanonical = "https://prohori.health/fhir/ValueSet/prohori-rdt-result-valueset"
 * group[0].source = "https://prohori.health/fhir/CodeSystem/prohori-rdt-result-legacy"
 * group[0].target = "http://snomed.info/sct"
 * group[0].element[0].code = #pos

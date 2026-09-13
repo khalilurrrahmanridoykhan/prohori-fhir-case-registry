@@ -24,7 +24,7 @@ InstanceOf: Measure
 Usage: #definition
 Title: "Prohori disease positivity measure"
 Description: "Proportion of field visits, in a period, with a positive RDT result — stratified by city."
-* url = "https://prohori.health/fhir/Measure/prohori-disease-positivity"
+* url = "https://prohori.health/fhir/Measure/prohori-disease-positivity-measure"
 * version = "1.0.0"
 * name = "ProhoriDiseasePositivityMeasure"
 * status = #draft

@@ -6,7 +6,7 @@ namespace Prohori.Api.Fhir;
 /// CQL declaration at ig/input/cql/ProhoriDiseasePositivity.cql.</summary>
 public static class MeasureCanonicals
 {
-    public const string MeasureUrl = "https://prohori.health/fhir/Measure/prohori-disease-positivity";
+    public const string MeasureUrl = "https://prohori.health/fhir/Measure/prohori-disease-positivity-measure";
     public const string LibraryUrl = "https://prohori.health/fhir/Library/prohori-disease-positivity";
 }
 

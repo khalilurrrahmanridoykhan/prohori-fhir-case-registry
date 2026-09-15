@@ -21,6 +21,8 @@
       "defaultClientScopes": [],
       "optionalClientScopes": [
         "user/*.write",
+        "user/*.read",
+        "break-glass",
         "patient/*.rs",
         "launch",
         "launch/patient",
@@ -71,6 +73,22 @@
   "clientScopes": [
     {
       "name": "user/*.write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "user/*.read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "break-glass",
       "protocol": "openid-connect",
       "attributes": {
         "include.in.token.scope": "true"

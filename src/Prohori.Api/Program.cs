@@ -1,5 +1,6 @@
 using Prohori.Api.Bulk;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hl7.Fhir.Rest;
@@ -65,6 +66,10 @@ builder.Services.AddAuthorization(options =>
     policy.RequireAuthenticatedUser().RequireAssertion(context => context.User.FindAll("scope")
         .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         .Contains("user/*.write", StringComparer.Ordinal)));
+    options.AddPolicy("CaseRead", policy =>
+    policy.RequireAuthenticatedUser().RequireAssertion(context => context.User.FindAll("scope")
+        .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        .Contains("user/*.read", StringComparer.Ordinal)));
 });
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .WithOrigins(builder.Configuration["Smart:WebOrigin"] ?? "http://localhost:5173")
@@ -87,14 +92,14 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapGet("/health", () => Results.Ok(new { status = "ok", fhirBaseUrl }))
    .WithSummary("Liveness + the FHIR server this instance targets.");
 
-app.MapPost("/cases", async (CaseSubmission submission, FhirCaseService cases) =>
+app.MapPost("/cases", async (CaseSubmission submission, FhirCaseService cases, ClaimsPrincipal user) =>
 {
     if (!MiniValidator.TryValidate(submission, out var errors))
         return Results.ValidationProblem(errors);
 
     try
     {
-        var result = await cases.SubmitAsync(submission);
+        var result = await cases.SubmitAsync(submission, user.FindFirst("sub")?.Value);
         return Results.Created("/cases", result);
     }
     catch (CaseRejectedException ex)
@@ -105,7 +110,7 @@ app.MapPost("/cases", async (CaseSubmission submission, FhirCaseService cases) =
 .RequireAuthorization("CaseWrite")
 .WithSummary("Submit one field case — builds a Patient/Encounter/Observation(/Condition) transaction Bundle and posts it to the FHIR server.");
 
-app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseService cases, bool dryRun = false) =>
+app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseService cases, ClaimsPrincipal user, bool dryRun = false) =>
 {
     if (!MiniValidator.TryValidate(submission, out var errors))
         return Results.ValidationProblem(errors);
@@ -117,7 +122,7 @@ app.MapPost("/bd-core/cases", async (BdCoreCaseSubmission submission, FhirCaseSe
 
     try
     {
-        var result = await cases.SubmitAsync(bundle);
+        var result = await cases.SubmitAsync(bundle, user.FindFirst("sub")?.Value);
         return Results.Created("/bd-core/cases", result);
     }
     catch (CaseRejectedException ex)
@@ -134,6 +139,7 @@ app.MapBulk();
 app.MapQuestionnaire();
 app.MapLegacyImport();
 app.MapMeasure();
+app.MapConsent();
 
 app.Run();
 

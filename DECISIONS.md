@@ -1,5 +1,46 @@
 # Decisions
 
+## 2026-09-15 — Phase O (Real-time, Provenance & Consent)
+
+- **AuditEvent over Provenance** for the "who wrote this" story — AuditEvent
+  is system-level access/change logging; Provenance is data lineage, which
+  fits `Prohori.V2Gateway`'s HL7 v2→FHIR mapping better than a plain API
+  write. Every `FhirCaseService.SubmitAsync` call — the one choke point
+  every write already funnels through (Phase K/L/M/N's pattern) — now
+  appends one `AuditEvent` to the same transaction, atomic with the case.
+- **Consent gets its own `identifier`, not just a `patient` reference** —
+  not a stylistic choice: a chained/modifier reference search
+  (`patient:identifier=` or `patient.identifier=`) is valid FHIR and works
+  as a *standalone* conditional create, but breaks specifically inside a
+  transaction Bundle on HAPI v8.0.0 when the same entry also carries an
+  unresolved forward reference to the Patient entry (`HAPI-1250` then
+  `HAPI-0389`, depending on which chain syntax). Isolated with raw `curl`
+  against local HAPI by binary-searching a captured bundle down to the
+  smallest failing case, not guessed from the error text. Giving Consent its
+  own identifier and matching on that directly sidesteps the bug rather than
+  working around it blind.
+- **HAPI's rest-hook delivery is a PUT to `{endpoint}/{Type}/{id}`**, not a
+  POST to the literal configured URL — found from HAPI's own delivery-error
+  log, not the docs. Moved the shared secret from a query string (which the
+  appended path breaks) to a `channel.header`.
+- **Subscriptions need `hapi.fhir.subscription.resthook_enabled: true`** — a
+  flat key, not the nested `subscription.resthook.enabled` shape that looks
+  more natural; HAPI silently ignores the nested form rather than rejecting
+  it, so the boot log ("Subscriptions are disabled on this server") was the
+  only way to catch it.
+- **The live Vercel dashboard's reads are NOT consent-gated** — it reads
+  FHIR directly, the same architecture every phase since D has used, and
+  Consent enforcement only exists in `Prohori.Api`'s own
+  `GET /patients/{nationalId}`. A real interceptor belongs on the FHIR
+  server itself; out of scope for a .NET project fronting a server it
+  doesn't operate. Documented, not hidden — see
+  docs/realtime-provenance-consent.md.
+- **Break-glass uses the real v3 `BTG` purpose-of-use code**
+  (`http://terminology.hl7.org/CodeSystem/v3-ActReason#BTG`), not a bespoke
+  flag — and the override is audited *before* the read happens, so the
+  record exists even if the read itself then fails.
+- See docs/realtime-provenance-consent.md for the full write-up.
+
 ## 2026-09-13 — Phase N, finding (malaria SNOMED/LOINC codes were wrong since Phase C)
 
 - The IG Publisher's routine validation of `ProhoriDiagnosisValueSet` /

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Hl7.Fhir.Serialization;
 using MiniValidation;
 using Prohori.Api.Models;
@@ -9,7 +10,7 @@ public static class LegacyImportEndpoints
 {
     public static void MapLegacyImport(this WebApplication app)
     {
-        app.MapPost("/legacy-import/cases", async (LegacyCaseSubmission submission, TerminologyClient terminology, FhirCaseService cases, bool dryRun = false) =>
+        app.MapPost("/legacy-import/cases", async (LegacyCaseSubmission submission, TerminologyClient terminology, FhirCaseService cases, ClaimsPrincipal user, bool dryRun = false) =>
         {
             if (!MiniValidator.TryValidate(submission, out var errors))
                 return Results.ValidationProblem(errors);
@@ -42,7 +43,7 @@ public static class LegacyImportEndpoints
 
             try
             {
-                var result = await cases.SubmitAsync(caseSubmission);
+                var result = await cases.SubmitAsync(caseSubmission, user.FindFirst("sub")?.Value);
                 return Results.Created("/cases", result);
             }
             catch (CaseRejectedException ex)

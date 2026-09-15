@@ -1,5 +1,8 @@
 import { Link, useParams } from "react-router-dom";
+import { AuditTrail } from "../components/AuditTrail";
+import { ConsentBadge } from "../components/ConsentBadge";
 import { useCaseTimeline } from "../fhir/cases";
+import { NATIONAL_ID_SYSTEM } from "../config";
 import type { Patient } from "../fhir/r4";
 
 const fmtDateTime = (iso: string) => {
@@ -26,7 +29,7 @@ export function CaseDetail() {
   const { data, isLoading, isError, error } = useCaseTimeline(patientId);
 
   const patient = data?.patient;
-  const nid = patient?.identifier?.find((i) => i.system === "http://health.gov.bd/sid")?.value;
+  const nid = patient?.identifier?.find((i) => i.system === NATIONAL_ID_SYSTEM)?.value;
   const addr = patient?.address?.[0];
 
   return (
@@ -66,6 +69,7 @@ export function CaseDetail() {
                 <dd>{patient?.id}</dd>
               </div>
             </dl>
+            <ConsentBadge nationalId={nid} />
           </section>
 
           <h3 className="page__title" style={{ fontSize: 16 }}>
@@ -86,6 +90,8 @@ export function CaseDetail() {
               ))}
             </ol>
           )}
+
+          <AuditTrail patientId={patient?.id} />
         </>
       )}
     </>

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Hl7.Fhir.Serialization;
@@ -29,7 +30,7 @@ public static class QuestionnaireEndpoints
         .RequireAuthorization("CaseWrite")
         .WithSummary("Prefill the patient-demographics group from an existing Patient, by National ID — a blank response if none matches.");
 
-        app.MapPost("/questionnaire-response/$extract", async (HttpRequest request, FhirCaseService cases, bool dryRun = false) =>
+        app.MapPost("/questionnaire-response/$extract", async (HttpRequest request, FhirCaseService cases, ClaimsPrincipal user, bool dryRun = false) =>
         {
             QuestionnaireResponse response;
             try
@@ -53,7 +54,7 @@ public static class QuestionnaireEndpoints
 
             try
             {
-                var result = await cases.SubmitAsync(bundle);
+                var result = await cases.SubmitAsync(bundle, user.FindFirst("sub")?.Value);
                 return Results.Created("/cases", result);
             }
             catch (CaseRejectedException ex)

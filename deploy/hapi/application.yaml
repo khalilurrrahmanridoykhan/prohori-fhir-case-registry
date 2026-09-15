@@ -13,3 +13,13 @@ hapi:
     validation:
       requests_enabled: true
       responses_enabled: false
+
+    # Phase O — rest-hook Subscriptions delivered to Prohori.Subscriber. Off by
+    # default in the base image (HAPI logs "Subscriptions are disabled on this
+    # server" and never activates one otherwise) — a real gotcha found by
+    # checking the boot log, not just the config docs: this is a flat
+    # `resthook_enabled` key, same style as `validation.requests_enabled`
+    # above, NOT a nested `resthook: enabled:` block (which HAPI silently
+    # ignores rather than rejecting).
+    subscription:
+      resthook_enabled: true

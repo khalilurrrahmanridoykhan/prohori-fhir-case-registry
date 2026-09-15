@@ -35,6 +35,12 @@ services:
         target: /app/config/application.yaml
     volumes:
       - hapi-data:/data
+    # Phase O: HAPI's rest-hook Subscription delivery needs to reach Prohori.Subscriber,
+    # which runs on the host (not in this compose network). Docker Desktop (macOS/Windows)
+    # already resolves host.docker.internal automatically; on Linux (incl. CI) it needs
+    # this explicit mapping to the host gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # No healthcheck — the image has no curl/wget for one. First boot takes ~40s;
     # poll http://localhost:8080/fhir/metadata yourself.
 

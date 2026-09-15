@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
 import { CaseTable } from "../components/CaseTable";
 import { EMPTY_FILTERS, Filters, type CaseFilters } from "../components/Filters";
+import { LiveBadge } from "../components/LiveBadge";
 import { SummaryTiles } from "../components/SummaryTiles";
 import { useCases } from "../fhir/cases";
+import { useLiveUpdates } from "../realtime/useLiveUpdates";
 
 export function Dashboard() {
   const { data: cases, isLoading, isError, error } = useCases();
   const [filters, setFilters] = useState<CaseFilters>(EMPTY_FILTERS);
+  const liveStatus = useLiveUpdates();
 
   const cities = useMemo(
     () => [...new Set((cases ?? []).map((c) => c.city).filter((c) => c && c !== "—"))].sort(),
@@ -25,11 +28,16 @@ export function Dashboard() {
 
   return (
     <>
-      <h1 className="page__title">Case surveillance</h1>
-      <p className="page__lede">
-        Field-visit RDT results and diagnoses for dengue and malaria. Click a row for the patient
-        timeline.
-      </p>
+      <div className="page__head">
+        <div>
+          <h1 className="page__title">Case surveillance</h1>
+          <p className="page__lede">
+            Field-visit RDT results and diagnoses for dengue and malaria. Click a row for the
+            patient timeline.
+          </p>
+        </div>
+        <LiveBadge status={liveStatus} />
+      </div>
 
       {isLoading && <div className="state">Loading cases…</div>}
 

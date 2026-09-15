@@ -87,6 +87,21 @@ rotated on every restart. If it does need to rotate, the old Subscription
 has to be deleted (or updated directly) first; this project doesn't
 implement that path.
 
+### Finding: "localhost" only worked locally by macOS accident
+
+Everything above passed locally, repeatedly — then the CI job (a Linux
+runner) failed with `Connection refused` at exactly the same
+`host.docker.internal:5300` address that worked on macOS. The script bound
+`Prohori.Subscriber` to `ASPNETCORE_URLS=http://localhost:5300` — listening
+on loopback only. Docker Desktop's `host.docker.internal` on macOS happens
+to route through the host's own loopback in a way that reaches a
+`localhost`-bound port anyway; the `extra_hosts: host-gateway` mapping this
+project added for Linux/CI resolves to the actual docker0 bridge gateway IP,
+which a loopback-only listener never accepts connections from. Fixed by
+binding the verification script's own instance to `0.0.0.0:5300` — the fix
+that turned a "works on my machine" pass into one that's actually testing
+what CI needs.
+
 ## AuditEvent, not Provenance — and why
 
 The plan named both. `AuditEvent` is the right fit here: it's about *who

@@ -18,6 +18,14 @@ cd "$(dirname "$0")/.."
 
 FHIR_BASE="${1:-http://localhost:8080/fhir}"
 SUB_HOST="http://localhost:5300"
+# Bind on every interface, not just loopback — this script's own curl calls (below) still
+# work fine against 0.0.0.0 via localhost, but HAPI's container reaching in from the
+# docker0 bridge (via host.docker.internal / host-gateway on Linux/CI) needs the process
+# actually listening on that interface, not just 127.0.0.1. Binding to plain "localhost"
+# happened to work in local dev (Docker Desktop's host.docker.internal routes through the
+# macOS host's loopback in a way plain Linux docker0 bridging does not) — CI's Linux runner
+# is what actually caught this.
+BIND_URL="http://0.0.0.0:5300"
 # HAPI (in Docker) must reach this service running on the host to deliver the
 # rest-hook callback — host.docker.internal, not localhost. See docker-compose.yml's
 # extra_hosts (needed on Linux/CI; Docker Desktop maps this automatically).
@@ -31,7 +39,7 @@ SUB_PUBLIC="http://host.docker.internal:5300"
 NOTIFY_KEY="verify-realtime-key"
 
 dotnet build -c Release src/Prohori.Subscriber
-Fhir__BaseUrl="$FHIR_BASE" Subscriber__PublicUrl="$SUB_PUBLIC" Subscriber__NotifyKey="$NOTIFY_KEY" ASPNETCORE_URLS="$SUB_HOST" \
+Fhir__BaseUrl="$FHIR_BASE" Subscriber__PublicUrl="$SUB_PUBLIC" Subscriber__NotifyKey="$NOTIFY_KEY" ASPNETCORE_URLS="$BIND_URL" \
   dotnet src/Prohori.Subscriber/bin/Release/net8.0/Prohori.Subscriber.dll > /tmp/prohori-subscriber.log 2>&1 &
 sub_pid=$!
 trap 'kill "$sub_pid" 2>/dev/null || true' EXIT

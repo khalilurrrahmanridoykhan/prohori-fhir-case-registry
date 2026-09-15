@@ -9,11 +9,11 @@ Usage: #definition
 Title: "Prohori.Api CapabilityStatement"
 Description: "What Prohori.Api implements, checked against Program.cs's actual endpoint mappings — nothing declared here that the code doesn't do."
 * url = "https://prohori.health/fhir/CapabilityStatement/prohori-api-capabilitystatement"
-* version = "0.1.0"
+* version = "0.2.0"
 * name = "ProhoriApiCapabilityStatement"
 * status = #draft
 * experimental = true
-* date = "2026-09-13"
+* date = "2026-09-15"
 * publisher = "Khalilur Rahman Ridoy Khan"
 * kind = #instance
 * implementation.description = "The running Prohori.Api instance — see docs/publishing-the-ig.md for how this IG is built and where the API is (or isn't yet) deployed."
@@ -29,10 +29,11 @@ Description: "What Prohori.Api implements, checked against Program.cs's actual e
 * rest[0].security.description = "Bearer token, CaseWrite scope, required on every write except the public Questionnaire/Measure reads. See docs/smart-launch.md."
 
 * rest[0].resource[0].type = #Patient
-* rest[0].resource[0].documentation = "Conditional create via POST /cases (and the other write paths); PATCH/PUT /cases/{id} with mandatory If-Match (Phase H)."
+* rest[0].resource[0].documentation = "Conditional create via POST /cases (and the other write paths); PATCH/PUT /cases/{id} with mandatory If-Match (Phase H). GET /patients/{nationalId} returns $everything, gated by that patient's Consent (see the Consent resource entry below) — 403 + OperationOutcome once denied, or ?breakGlass=true with the break-glass scope."
 * rest[0].resource[0].interaction[0].code = #create
 * rest[0].resource[0].interaction[1].code = #update
 * rest[0].resource[0].interaction[2].code = #patch
+* rest[0].resource[0].interaction[3].code = #read
 
 * rest[0].resource[1].type = #QuestionnaireResponse
 * rest[0].resource[1].documentation = "POST /questionnaire-response/$extract builds and submits the case Bundle from a filled-in response. See docs/sdc.md."
@@ -55,3 +56,12 @@ Description: "What Prohori.Api implements, checked against Program.cs's actual e
 * rest[0].resource[4].documentation = "$translate backs POST /legacy-import/cases, resolving a legacy ODK RDT code to SNOMED CT before the normal case Bundle is built. See docs/terminology.md."
 * rest[0].resource[4].operation[0].name = "translate"
 * rest[0].resource[4].operation[0].definition = "http://hl7.org/fhir/OperationDefinition/ConceptMap-translate"
+
+* rest[0].resource[5].type = #Consent
+* rest[0].resource[5].documentation = "A default-permit Consent is created in the same transaction as every new patient's first case (conditional create, keyed on the patient's own National ID, not chained through the reference — see docs/realtime-provenance-consent.md for why). PUT /patients/{nationalId}/consent toggles it; GET /patients/{nationalId} (Patient resource, below) is refused with 403 once it's set to deny."
+* rest[0].resource[5].interaction[0].code = #create
+* rest[0].resource[5].interaction[1].code = #update
+
+* rest[0].resource[6].type = #AuditEvent
+* rest[0].resource[6].documentation = "One AuditEvent is appended to every write transaction, naming every resource it wrote and the authenticated caller. A break-glass read (Patient, below) also creates one, using the v3 BTG purpose-of-use — recorded before the read happens."
+* rest[0].resource[6].interaction[0].code = #create

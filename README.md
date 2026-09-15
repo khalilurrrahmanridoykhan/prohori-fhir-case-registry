@@ -156,6 +156,23 @@ cd ig && java -jar ~/.fhir/ig-publisher/publisher.jar -ig ig.ini
 
 [Full write-up, including a real security finding in the obvious `template:` choice](docs/publishing-the-ig.md).
 
+## Real-time, Provenance & Consent (Phase O)
+
+`Prohori.Subscriber` registers a real R4 rest-hook `Subscription` on the FHIR
+server, receives the callback HAPI delivers on a new tagged Observation, and
+broadcasts it over SSE — the dashboard updates within seconds, no reload.
+Every write through `Prohori.Api` now also appends an `AuditEvent` (atomic
+with the case) and, for a new patient, a default-permit `Consent`;
+`GET /patients/{nationalId}` refuses with `403` once it's set to deny
+(`?breakGlass=true` with the right scope reads anyway, itself audited first).
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d hapi
+bash scripts/verify-realtime.sh
+```
+
+[Full write-up, including two real HAPI delivery-mechanism findings](docs/realtime-provenance-consent.md).
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -173,6 +190,8 @@ cd ig && java -jar ~/.fhir/ig-publisher/publisher.jar -ig ig.ini
 | **K** | Terminology — `$expand`/`$validate-code`/`$translate`, fixes BD-Core's empty ICD-11 ValueSet | Implemented — [write-up](docs/terminology.md) |
 | **L** | HL7 v2 → FHIR — `Prohori.V2Gateway`, ADT admit/update/discharge | Implemented — [write-up](docs/hl7v2-to-fhir.md) |
 | **M** | CQL, Measure & MeasureReport — `$evaluate-measure`-shaped endpoint, dashboard sourced from it | Implemented — [write-up](docs/measures.md) |
+| **N** | Full IG Publisher, CapabilityStatement, published site | Implemented — [write-up](docs/publishing-the-ig.md) |
+| **O** | Subscriptions (rest-hook), AuditEvent, Consent with break-glass | Implemented — [write-up](docs/realtime-provenance-consent.md) |
 
 ## Repository layout
 
@@ -188,15 +207,20 @@ src/Prohori.Api/       .NET 8 minimal API — POST /cases builds + submits a tra
   Fhir/Questionnaire*      Questionnaire catalog + $populate/$extract (Phase J)
   Fhir/Terminology*, LegacyImport*  $translate client + legacy-import endpoint (Phase K)
   Fhir/Measure*             MeasureReportBuilder (pure) + MeasureEvaluator + GET /measure/$evaluate-measure (Phase M)
+  Fhir/AuditEventBuilder.cs, ConsentBuilder.cs, ConsentEndpoints.cs  audit + consent (Phase O)
 tests/Prohori.Api.Tests/  xUnit — unit + integration (Category=Integration)
-.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology/V2Gateway/Measure validate, integration
+.github/workflows/     ci.yml — .NET build+tests, dashboard build, IG/BD-Core/SDC/Terminology/V2Gateway/Measure/Realtime validate, integration
 src/Prohori.BulkClient/ Backend JWT auth, async exports, NDJSON snapshot + aggregates
 src/Prohori.V2Gateway/  ADT parser (NHapi) + PID/PV1 -> FHIR mapper + POST /adt (Phase L)
 tests/Prohori.V2Gateway.Tests/  its own project — a bare Program class collides with Prohori.Api's
+src/Prohori.Subscriber/ Registers a rest-hook Subscription, receives /notify, broadcasts over SSE (Phase O)
+tests/Prohori.Subscriber.Tests/  its own project, same reason as Prohori.V2Gateway.Tests
 web/                   React 19 + Vite + TS dashboard (Phase D)
   src/questionnaire/       generic Questionnaire form renderer + $populate/$extract client (Phase J)
   src/pages/NewCase.tsx    the field-intake page
   src/measure/api.ts       useMeasureReport() — sources SummaryTiles' 5th tile (Phase M)
+  src/realtime/useLiveUpdates.ts  SSE client, invalidates the case list on each event (Phase O)
+  src/fhir/audit.ts, consent.ts   AuditEvent trail + Consent badge/toggle (Phase O)
 ig/                    FHIR Shorthand — ProhoriPatient (E), ProhoriObservation + terminology (K); SUSHI-generated output is gitignored
   input/maps/hl7v2-to-fhir.map  FHIR Mapping Language (Phase L) — declared, not executed; see docs/hl7v2-to-fhir.md
   input/cql/*.cql            CQL (Phase M) — declared, embedded in the Library, not run by a live engine; see docs/measures.md
@@ -352,6 +376,8 @@ Local Docker equivalent: `docker build -f deploy/Dockerfile -t prohori-api .`
 | K | Docker or Colima (local HAPI), Node + `fsh-sushi`, Java 11+ (`validator_cli.jar`) |
 | L | .NET 8 SDK, Docker or Colima (local HAPI) |
 | M | .NET 8 SDK, Node 22+, Docker or Colima (local HAPI) |
+| N | Node + `fsh-sushi`, Java 17+, Ruby + Jekyll (IG Publisher's HTML pass) |
+| O | .NET 8 SDK, Node 22+, Docker or Colima (local HAPI) |
 
 ## Phase-by-phase
 

@@ -1,5 +1,32 @@
 # Decisions
 
+## 2026-09-16 — Phase P, scoped (Consolidation, docs only)
+
+- Phase P's plan step list mixes things a coding session can actually
+  produce (a case study, a competency matrix, a demo-video script) with
+  things only the user can do (sitting the HL7 FHIR Proficiency Exam and
+  Fundamentals course, recording the video). Asked before proceeding rather
+  than assuming; user chose docs-only for now.
+- **Wrote `docs/architecture-case-study.md`** — a 2-page narrative covering
+  the architecture, the BD-Core empty-ValueSet defect, the SMART/bulk/
+  terminology layers, and the malaria code-correctness finding, framed as
+  what the project is evidence of rather than a phase log.
+- **Wrote `docs/fhir-competency-matrix.md`** — every phase A–P mapped to the
+  exact competency it evidences, with real PR numbers looked up via
+  `gh pr list --search <merge-sha>` rather than trusted from memory.
+- **Wrote `docs/demo-video-script.md`** — a beat-sheet storyboard for a
+  3-minute walkthrough, for the user to actually record.
+- **Updated `RidoyCV_MasterData.json`** (a different repo,
+  `~/Documents/LATEX/RIDOY/`) — expanded the Prohori project entry's
+  `key_features`/`description`/`keywords` to cover Phases H–O, with real
+  numbers (15 phases, 26 merged PRs, 150 .NET tests) confirmed live rather
+  than assumed. **Did not** add a `certifications` entry — that would be
+  false until the exam is actually sat and passed.
+- **No PR/tag for this phase** — it's documentation only, reviewed and
+  committed directly, not run through the branch/PR/CI ritual the coding
+  phases use (nothing here changes running behavior, so there's nothing for
+  CI to validate). `phase-p` stays untagged until the exam itself is done.
+
 ## 2026-09-15 — Phase O (Real-time, Provenance & Consent)
 
 - **AuditEvent over Provenance** for the "who wrote this" story — AuditEvent

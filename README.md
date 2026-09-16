@@ -173,6 +173,20 @@ bash scripts/verify-realtime.sh
 
 [Full write-up, including two real HAPI delivery-mechanism findings](docs/realtime-provenance-consent.md).
 
+## Consolidation & portfolio (Phase P)
+
+Fifteen build phases (A–O), 26 merged pull requests, one tag per phase.
+[`docs/architecture-case-study.md`](docs/architecture-case-study.md) is the
+2-page "how this is built" narrative — the trade-offs, the BD-Core defect,
+the malaria code finding, the SMART/bulk/terminology layers.
+[`docs/fhir-competency-matrix.md`](docs/fhir-competency-matrix.md) maps
+every phase to the exact competency it evidences, with the PR that proves
+it. A [demo-video script](docs/demo-video-script.md) storyboards a 3-minute
+walkthrough.
+
+**Not done**: the HL7 FHIR Proficiency Exam and Fundamentals course are
+real, paid, human actions — not claimed here until actually sat and passed.
+
 ## Build phases
 
 | Phase | Scope | Status |
@@ -192,6 +206,7 @@ bash scripts/verify-realtime.sh
 | **M** | CQL, Measure & MeasureReport — `$evaluate-measure`-shaped endpoint, dashboard sourced from it | Implemented — [write-up](docs/measures.md) |
 | **N** | Full IG Publisher, CapabilityStatement, published site | Implemented — [write-up](docs/publishing-the-ig.md) |
 | **O** | Subscriptions (rest-hook), AuditEvent, Consent with break-glass | Implemented — [write-up](docs/realtime-provenance-consent.md) |
+| **P** | Consolidation — case study, competency matrix, demo script | Docs done — [case study](docs/architecture-case-study.md); exam not yet taken |
 
 ## Repository layout
 
